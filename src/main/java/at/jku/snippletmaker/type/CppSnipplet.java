@@ -199,16 +199,18 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 
 	private class SnippletBuilder {
 		public Snipplet.Action action;
-		public int step;
+		public final int step;
+		public final int subStep;
 		private final String description;
 		private final StringBuilder codeThen = new StringBuilder();
 		private final StringBuilder codeElse = new StringBuilder();
 		public int nestedIfs = 0;
 		private boolean inElsePath = false;
 
-		public SnippletBuilder(final Action action, final int step, final String description) {
+		public SnippletBuilder(final Action action, final int step, final int subStep, final String description) {
 			this.action = action;
 			this.step = step;
+			this.subStep = subStep;
 			this.description = description;
 		}
 
@@ -226,11 +228,11 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 		public Snipplet asSnipplet() {
 			switch (this.action) {
 			case INSERT:
-				return Snipplet.insert(this.description, this.codeThen.toString());
+				return Snipplet.insert(this.subStep, this.description, this.codeThen.toString());
 			case REMOVE:
-				return Snipplet.remove(this.description, this.codeThen.toString());
+				return Snipplet.remove(this.subStep, this.description, this.codeThen.toString());
 			case FROM_TO:
-				return Snipplet.from_to(this.description, this.codeThen.toString(), this.codeElse.toString());
+				return Snipplet.from_to(this.subStep, this.description, this.codeThen.toString(), this.codeElse.toString());
 			}
 			throw new IllegalStateException();
 		}
@@ -253,17 +255,18 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 	}
 
 	private SnippletBuilder parseSnipplet(final String tline) {
-		final Pattern p = Pattern.compile("# *if +SNIPPLET_(\\w+)\\((\\d+),\"([\\w\\s]*)\"(,.*)?\\)");
+		final Pattern p = Pattern.compile("# *if +SNIPPLET_(\\w+)\\((\\d+),(\\d+),\"([\\w\\s]*)\"(,.*)?\\)");
 		final Matcher matcher = p.matcher(tline);
 		if (!matcher.find())
 			throw new IllegalStateException("invalid snipplet begin line: " + tline);
 		final int step = Integer.parseInt(matcher.group(2));
+		final int subStep = Integer.parseInt(matcher.group(3));
 		if ("INSERT".equalsIgnoreCase(matcher.group(1)))
-			return new SnippletBuilder(Action.INSERT, step, matcher.group(3));
+			return new SnippletBuilder(Action.INSERT, step, subStep, matcher.group(4));
 		else if ("REMOVE".equalsIgnoreCase(matcher.group(1)))
-			return new SnippletBuilder(Action.REMOVE, step, matcher.group(3));
+			return new SnippletBuilder(Action.REMOVE, step, subStep, matcher.group(4));
 		else if ("FROM_TO".equalsIgnoreCase(matcher.group(1)))
-			return new SnippletBuilder(Action.FROM_TO, step, matcher.group(3));
+			return new SnippletBuilder(Action.FROM_TO, step, subStep, matcher.group(4));
 		else
 			throw new IllegalStateException("invalid snipplet begin line: " + tline);
 	}

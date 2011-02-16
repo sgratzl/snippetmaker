@@ -2,6 +2,7 @@
 package at.jku.snippletmaker;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -77,6 +78,7 @@ public final class Snipplets implements Iterable<SnippletStep> {
 			@Override
 			public SnippletStep next() {
 				final Entry<Integer, List<Snipplet>> next = iterator.next();
+				Collections.sort(next.getValue());
 				return new SnippletStep(next.getKey().intValue(), next.getValue());
 			}
 

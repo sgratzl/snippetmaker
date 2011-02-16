@@ -59,15 +59,17 @@ public final class File extends SnippletTask {
 				for (final SnippletStep step : snipplets) {
 					writer.append(begin.format(this.asArgs(endl, step.getStep())));
 					for (final Snipplet snipplet : step) {
+						final String fullStep = step.getStep() + "." + snipplet.getSubStep();
 						switch (snipplet.getAction()) {
 						case INSERT:
-							writer.append(sinsert.format(this.asArgs(endl, snipplet.getDescription(), snipplet.getCodeToInsert())));
+							writer.append(sinsert.format(this.asArgs(endl, fullStep, snipplet.getDescription(), snipplet.getCodeToInsert())));
 							break;
 						case REMOVE:
-							writer.append(sremove.format(this.asArgs(endl, snipplet.getDescription(), snipplet.getCodeToRemove())));
+							writer.append(sremove.format(this.asArgs(endl, fullStep, snipplet.getDescription(), snipplet.getCodeToRemove())));
 							break;
 						case FROM_TO:
-							writer.append(sfromto.format(this.asArgs(endl, snipplet.getDescription(), snipplet.getCodeToRemove(), snipplet.getCodeToInsert())));
+							writer.append(sfromto.format(this.asArgs(endl, fullStep, snipplet.getDescription(), snipplet.getCodeToRemove(),
+									snipplet.getCodeToInsert())));
 							break;
 						}
 						writer.append(sbetween.format(this.asArgs(endl)));
