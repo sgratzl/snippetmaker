@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<antlib>
+	<taskdef name="file" classname="at.jku.snippletmaker.File" />
+	<taskdef name="stepSize" classname="at.jku.snippletmaker.StepSize" />
+	<typedef name="stepTransformer" classname="at.jku.snippletmaker.StepTransformer" />
+</antlib>
