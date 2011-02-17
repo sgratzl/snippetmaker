@@ -93,7 +93,7 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 				case SNIPPLET_BEGIN:
 					final SnippletBuilder current = this.parseSnipplet(line.trim());
 					if(!snippletTree.empty())
-						snippletTree.peek().addCode(createMarker(current.step)); // create a marker for the new snipplet in the old snipplet
+						snippletTree.peek().addCode(createMarker(current.step, current.subStep)); // create a marker for the new snipplet in the old snipplet
 					snippletTree.push(current);
 					break;
 				case IF:
@@ -244,11 +244,11 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 
 		switch(s.action) {
 		case INSERT:
-			return new InsertSnippletTransformer(s.step);
+			return new InsertSnippletTransformer(s.step, s.subStep);
 		case REMOVE:
-			return new RemoveSnippletTransformer(s.step);
+			return new RemoveSnippletTransformer(s.step, s.subStep);
 		case FROM_TO:
-			return new FromToSnippletTransformer(s.step);
+			return new FromToSnippletTransformer(s.step, s.subStep);
 		default:
 			throw new IllegalStateException("invalid snipplet begin line: " + tline);
 		}
@@ -271,8 +271,8 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 			throw new IllegalStateException("invalid snipplet begin line: " + tline);
 	}
 
-	static String createMarker(final int step) {
-		return String.format("/*----------%2d----------*/", step);
+	static String createMarker(final int step, final int substep) {
+		return String.format("/*----------%d.%d----------*/", step, substep);
 	}
 
 	static String extractIntention(final String line) {
@@ -323,9 +323,11 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 	public abstract class BaseSnippletTransformer implements SnippletTransformer {
 		protected boolean inElsePath = false;
 		protected final int snippletStep;
+		protected final int snippletSubStep;
 
-		public BaseSnippletTransformer(final int snippletStep) {
+		public BaseSnippletTransformer(final int snippletStep, final int snippletSubStep) {
 			this.snippletStep = snippletStep;
+			this.snippletSubStep = snippletSubStep;
 		}
 
 		@Override
@@ -336,7 +338,7 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 		@Override
 		public final String begin(final String line) {
 			if (CppSnipplet.this.createMarkers && !this.afterStep())
-				return extractIntention(line) + createMarker(this.snippletStep);
+				return extractIntention(line) + createMarker(this.snippletStep, this.snippletSubStep);
 			return null;
 		}
 
@@ -358,8 +360,8 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 
 	private class InsertSnippletTransformer extends BaseSnippletTransformer {
 
-		public InsertSnippletTransformer(final int snippletStep) {
-			super(snippletStep);
+		public InsertSnippletTransformer(final int snippletStep, final int snippletSubStep) {
+			super(snippletStep, snippletSubStep);
 		}
 
 		@Override
@@ -373,8 +375,8 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 
 	private class RemoveSnippletTransformer extends BaseSnippletTransformer {
 
-		public RemoveSnippletTransformer(final int snippletStep) {
-			super(snippletStep);
+		public RemoveSnippletTransformer(final int snippletStep, final int snippletSubStep) {
+			super(snippletStep, snippletSubStep);
 		}
 
 		@Override
@@ -388,8 +390,8 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 
 	private class FromToSnippletTransformer extends BaseSnippletTransformer {
 
-		public FromToSnippletTransformer(final int snippletStep) {
-			super(snippletStep);
+		public FromToSnippletTransformer(final int snippletStep, final int snippletSubStep) {
+			super(snippletStep, snippletSubStep);
 		}
 
 		@Override

@@ -1,6 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<antlib>
+<antlib xmlns:current="ant:current" xmlns:rsel="antlib:org.apache.tools.ant.types.resources.selectors">
+
 	<taskdef name="file" classname="at.jku.snippletmaker.File" />
 	<taskdef name="stepSize" classname="at.jku.snippletmaker.StepSize" />
 	<typedef name="stepTransformer" classname="at.jku.snippletmaker.StepTransformer" />
+
+	<!-- = = = = = = = = = = = = = = = = =
+		macrodef: transform
+		= = = = = = = = = = = = = = = = = -->
+	<macrodef name="transform">
+		<attribute name="todir" />
+		<attribute name="step" default="0"/>
+		<attribute name="final" default="false"/>
+		<attribute name="createMarker" default="true"/>
+		<element name="data" implicit="true"/>
+		<sequential>
+			<copy todir="@{todir}" >
+				<restrict>
+					<data/>
+					<rsel:or>
+						<rsel:name name="**.cpp" />
+						<rsel:name name="**.h" />
+					</rsel:or>
+				</restrict>
+				<filterchain>
+					<current:stepTransformer step="@{step}" final="@{final}" type="cpp" createMarker="@{createMarker}"/>
+				</filterchain>
+			</copy>
+			<copy todir="@{todir}" >
+				<restrict>
+					<data/>
+					<rsel:none>
+						<rsel:name name="**.cpp" />
+						<rsel:name name="**.h" />
+					</rsel:none>
+				</restrict>
+			</copy>
+		</sequential>
+	</macrodef>
+
 </antlib>

@@ -32,7 +32,7 @@ public abstract class SnippletTask extends Task {
 				snipplets.merge(this.parseSnipplets(((Resource) res)));
 			}
 		}
-		this.log("dump\n" + snipplets);
+		this.log("dump\n" + snipplets, Project.MSG_DEBUG);
 
 		return snipplets;
 	}
