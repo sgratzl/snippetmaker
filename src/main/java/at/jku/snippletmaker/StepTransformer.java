@@ -6,6 +6,7 @@ import java.io.Reader;
 import org.apache.tools.ant.filters.ChainableReader;
 
 import at.jku.snippletmaker.type.CppSnipplet;
+import at.jku.snippletmaker.type.XmlSnipplet;
 
 public final class StepTransformer implements ChainableReader {
 	private int step = 0;
@@ -36,13 +37,15 @@ public final class StepTransformer implements ChainableReader {
 		switch (this.type) {
 		case cpp:
 			return CppSnipplet.createFilterReader(reader, this.step, this.createMarker);
+		case xml:
+			return XmlSnipplet.createFilterReader(reader, this.step, this.createMarker);
 		default:
 			return reader;
 		}
 	}
 
 	public static enum Type {
-		cpp
+		cpp, xml
 	}
 
 }

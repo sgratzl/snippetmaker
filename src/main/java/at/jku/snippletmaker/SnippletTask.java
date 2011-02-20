@@ -14,6 +14,7 @@ import org.apache.tools.ant.types.Resource;
 import org.apache.tools.ant.types.ResourceCollection;
 
 import at.jku.snippletmaker.type.CppSnipplet;
+import at.jku.snippletmaker.type.XmlSnipplet;
 
 public abstract class SnippletTask extends Task {
 	private final List<ResourceCollection> collections = new ArrayList<ResourceCollection>();
@@ -43,6 +44,9 @@ public abstract class SnippletTask extends Task {
 			if ("cpp".equalsIgnoreCase(ext) || "h".equalsIgnoreCase(ext)) {
 				this.log("parsing resource: " + resource.getName() + " -> using cpp", Project.MSG_INFO);
 				return CppSnipplet.createParser(new BufferedReader(new InputStreamReader(resource.getInputStream()))).parse();
+			} else if ("xml".equalsIgnoreCase(ext)) {
+				this.log("parsing resource: " + resource.getName() + " -> using xml", Project.MSG_INFO);
+				return XmlSnipplet.createParser(new BufferedReader(new InputStreamReader(resource.getInputStream()))).parse();
 			} else {
 				this.log("skipping resource: " + resource.getName() + " -> unknown how to parse snipplets", Project.MSG_INFO);
 			}

@@ -30,9 +30,21 @@
 			<copy todir="@{todir}" >
 				<restrict>
 					<data/>
+					<rsel:or>
+						<rsel:name name="**.xml" />
+					</rsel:or>
+				</restrict>
+				<filterchain>
+					<current:stepTransformer step="@{step}" final="@{final}" type="xml" createMarker="@{createMarker}"/>
+				</filterchain>
+			</copy>
+			<copy todir="@{todir}" >
+				<restrict>
+					<data/>
 					<rsel:none>
 						<rsel:name name="**.cpp" />
 						<rsel:name name="**.h" />
+						<rsel:name name="**.xml" />
 					</rsel:none>
 				</restrict>
 			</copy>

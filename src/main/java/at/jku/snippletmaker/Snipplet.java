@@ -61,7 +61,7 @@ public final class Snipplet implements Comparable<Snipplet> {
 	}
 
 	public int getSubStep() {
-		return subStep;
+		return this.subStep;
 	}
 
 }
