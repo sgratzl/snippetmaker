@@ -255,10 +255,10 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 	}
 
 	private SnippletBuilder parseSnipplet(final String tline) {
-		final Pattern p = Pattern.compile("# *if +SNIPPLET_(\\w+)\\((\\d+),(\\d+),\"([\\w\\s]*)\"(,.*)?\\)");
+		final Pattern p = Pattern.compile("# *if +SNIPPLET_(\\w+)\\s*\\(\\s*(\\d+),\\s*(\\d+),\\s*\"(.*)\"\\s*(,.*)?\\)");
 		final Matcher matcher = p.matcher(tline);
 		if (!matcher.find())
-			throw new IllegalStateException("invalid snipplet begin line: " + tline);
+			throw new IllegalStateException("invalid snipplet begin line: >>'" + tline + "<<");
 		final int step = Integer.parseInt(matcher.group(2));
 		final int subStep = Integer.parseInt(matcher.group(3));
 		if ("INSERT".equalsIgnoreCase(matcher.group(1)))
