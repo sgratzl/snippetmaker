@@ -92,8 +92,9 @@ public final class XmlSnipplet extends BaseFilterReader implements SnippletParse
 					break;
 				case SNIPPLET_BEGIN:
 					final SnippletBuilder current = this.parseSnipplet(line.trim());
-					if(!snippletTree.empty())
-						snippletTree.peek().addCode(createMarker(current.step, current.subStep)); // create a marker for the new snipplet in the old snipplet
+					if (!snippletTree.empty()) {
+						current.setParent(snippletTree.peek());
+					}
 					snippletTree.push(current);
 					break;
 				case SNIPPLET_FROM:
@@ -194,6 +195,7 @@ public final class XmlSnipplet extends BaseFilterReader implements SnippletParse
 		private final String description;
 		private final StringBuilder codeThen = new StringBuilder();
 		private final StringBuilder codeElse = new StringBuilder();
+		private SnippletBuilder parent = null;
 		private boolean inFrom = false, inTo = false;
 
 		public SnippletBuilder(final Action action, final int step, final int subStep, final String description) {
@@ -203,11 +205,20 @@ public final class XmlSnipplet extends BaseFilterReader implements SnippletParse
 			this.description = description;
 		}
 
+		public void setParent(final SnippletBuilder parent) {
+			this.parent = parent;
+			parent.addCode(createMarker(this.step, this.subStep)); // create a marker for the new snipplet in the old snipplet
+		}
+
 		public void addCode(final String line) {
 			if (this.inTo)
 				this.codeElse.append(line).append(XmlSnipplet.this.tokenizer.getPostToken());
-			else if (this.action != Action.FROM_TO || this.inFrom)
+			else if (this.action != Action.FROM_TO || this.inFrom) {
+				if ((this.action == Action.REMOVE || this.action == Action.FROM_TO) && this.parent != null) {
+					this.parent.addCode(line); // add the code to the parent
+				}
 				this.codeThen.append(line).append(XmlSnipplet.this.tokenizer.getPostToken());
+			}
 		}
 
 		public void switchToFrom() {

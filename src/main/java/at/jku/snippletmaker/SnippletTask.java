@@ -41,7 +41,8 @@ public abstract class SnippletTask extends Task {
 	private Snipplets parseSnipplets(final Resource resource) {
 		final String ext = this.getExtension(resource.getName());
 		try {
-			if ("cpp".equalsIgnoreCase(ext) || "h".equalsIgnoreCase(ext)) {
+			if ("cpp".equalsIgnoreCase(ext) || "h".equalsIgnoreCase(ext) || "glsl".equalsIgnoreCase(ext) || "frag".equalsIgnoreCase(ext)
+					|| "vert".equalsIgnoreCase(ext) || "geom".equalsIgnoreCase(ext)) {
 				this.log("parsing resource: " + resource.getName() + " -> using cpp", Project.MSG_INFO);
 				return CppSnipplet.createParser(new BufferedReader(new InputStreamReader(resource.getInputStream()))).parse();
 			} else if ("xml".equalsIgnoreCase(ext)) {

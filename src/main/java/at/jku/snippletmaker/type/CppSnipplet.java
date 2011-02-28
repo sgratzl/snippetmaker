@@ -92,8 +92,9 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 					break;
 				case SNIPPLET_BEGIN:
 					final SnippletBuilder current = this.parseSnipplet(line.trim());
-					if(!snippletTree.empty())
-						snippletTree.peek().addCode(createMarker(current.step, current.subStep)); // create a marker for the new snipplet in the old snipplet
+					if (!snippletTree.empty()) {
+						current.setParent(snippletTree.peek());
+					}
 					snippletTree.push(current);
 					break;
 				case IF:
@@ -140,7 +141,7 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 			return Token.LINE;
 		if (tline.matches("# *include *[\"<]snipplets\\.h[\">]")) // snipplet include
 			return Token.SNIPPLET_INCLUDE;
-		if (tline.matches("# *define +SNIPPLET_STEP.*")) // snipplet step definition
+		if (tline.matches("# *define +SNIPPLET_.*")) // snipplet step definition
 			return Token.SNIPPLET_DEFINE;
 
 		if (tline.matches("# *if +.*")) {
@@ -204,6 +205,7 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 		private final String description;
 		private final StringBuilder codeThen = new StringBuilder();
 		private final StringBuilder codeElse = new StringBuilder();
+		private SnippletBuilder parent = null;
 		public int nestedIfs = 0;
 		private boolean inElsePath = false;
 
@@ -214,11 +216,20 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 			this.description = description;
 		}
 
+		public void setParent(final SnippletBuilder parent) {
+			this.parent = parent;
+			parent.addCode(createMarker(this.step, this.subStep)); // create a marker for the new snipplet in the old snipplet
+		}
+
 		public void addCode(final String line) {
-			if (this.inElsePath)
+			if (this.inElsePath) {
 				this.codeElse.append(line).append(CppSnipplet.this.tokenizer.getPostToken());
-			else
+			} else {
+				if ((this.action == Action.REMOVE || this.action == Action.FROM_TO) && this.parent != null) {
+					this.parent.addCode(line); // add the code to the parent
+				}
 				this.codeThen.append(line).append(CppSnipplet.this.tokenizer.getPostToken());
+			}
 		}
 
 		public void switchToElseOrElseIf() {
