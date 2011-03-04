@@ -49,7 +49,7 @@ public abstract class SnippletTask extends Task {
 				this.log("parsing resource: " + resource.getName() + " -> using xml", Project.MSG_INFO);
 				return XmlSnipplet.createParser(new BufferedReader(new InputStreamReader(resource.getInputStream()))).parse();
 			} else {
-				this.log("skipping resource: " + resource.getName() + " -> unknown how to parse snipplets", Project.MSG_INFO);
+				this.log("skipping resource: " + resource.getName() + " -> unknown how to parse snipplets", Project.MSG_DEBUG);
 			}
 		} catch (final IOException e) {
 			this.log("skipping resource: " + resource.getName() + " -> error opening reader", e, Project.MSG_WARN);

@@ -15,6 +15,7 @@ public final class File extends SnippletTask {
 
 	private Type type = Type.html;
 	private java.io.File file = new java.io.File("snipplets.html");
+	private StepFilter stepFilter;
 
 
 	public void setType(final Type type) {
@@ -23,6 +24,10 @@ public final class File extends SnippletTask {
 
 	public void setFile(final java.io.File file) {
 		this.file = file;
+	}
+
+	public void addStepFilter(final StepFilter filter) {
+		this.stepFilter = filter;
 	}
 
 	@Override
@@ -57,6 +62,8 @@ public final class File extends SnippletTask {
 
 				writer.append(head.format(this.asArgs(endl)));
 				for (final SnippletStep step : snipplets) {
+					if (this.stepFilter != null && !this.stepFilter.include(step.getStep()))
+						continue;
 					writer.append(begin.format(this.asArgs(endl, step.getStep())));
 					for (final Snipplet snipplet : step) {
 						final String fullStep = step.getStep() + "." + snipplet.getSubStep();

@@ -4,6 +4,9 @@
 	<taskdef name="file" classname="at.jku.snippletmaker.File" />
 	<taskdef name="stepSize" classname="at.jku.snippletmaker.StepSize" />
 	<typedef name="stepTransformer" classname="at.jku.snippletmaker.StepTransformer" />
+	<typedef name="forEachStep" classname="at.jku.snippletmaker.ForEachStep" />
+
+	<typedef name="stepFilter" classname="at.jku.snippletmaker.StepFilter" />
 
 	<!-- = = = = = = = = = = = = = = = = =
 		macrodef: transform
@@ -48,6 +51,25 @@
 					</rsel:none>
 				</restrict>
 			</copy>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="transformAll">
+		<attribute name="todir" />
+		<attribute name="createMarker" default="true"/>
+		<element name="data" implicit="true"/>
+		<sequential>
+			<current:forEachStep>
+				<data/>
+				<sequential>
+					<current:transform todir="@{todir}@{step}" step="@{step}" createMarker="@{createMarker}" >
+						<data/>
+					</current:transform>
+				</sequential>
+			</current:forEachStep>
+			<current:transform todir="@{todir}Final" final="true" createMarker="@{createMarker}">
+				<data/>
+			</current:transform>
 		</sequential>
 	</macrodef>
 
