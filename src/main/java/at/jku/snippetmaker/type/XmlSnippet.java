@@ -12,11 +12,11 @@ import org.apache.tools.ant.filters.BaseFilterReader;
 import org.apache.tools.ant.util.LineTokenizer;
 
 import at.jku.snippetmaker.Snippet;
+import at.jku.snippetmaker.Snippet.Action;
 import at.jku.snippetmaker.SnippetParser;
 import at.jku.snippetmaker.Snippets;
-import at.jku.snippetmaker.Snippet.Action;
 
-public final class XmlSnipplet extends BaseFilterReader implements SnippetParser {
+public final class XmlSnippet extends BaseFilterReader implements SnippetParser {
 
 	private final int step;
 	private final boolean createMarkers;
@@ -26,20 +26,20 @@ public final class XmlSnipplet extends BaseFilterReader implements SnippetParser
 	private int _linePos = 0;
 
 	public static BaseFilterReader createFilterReader(final Reader in, final int step, final boolean createMarkers) {
-		return new XmlSnipplet(in, step, createMarkers);
+		return new XmlSnippet(in, step, createMarkers);
 	}
 
 	public static SnippetParser createParser(final Reader in) {
-		return new XmlSnipplet(in);
+		return new XmlSnippet(in);
 	}
 
-	private XmlSnipplet(final Reader in, final int step, final boolean createMarkers) {
+	private XmlSnippet(final Reader in, final int step, final boolean createMarkers) {
 		super(in);
 		this.step = step;
 		this.createMarkers = createMarkers;
 	}
 
-	private XmlSnipplet(final Reader in) {
+	private XmlSnippet(final Reader in) {
 		super(in);
 		this.step = Integer.MAX_VALUE;
 		this.createMarkers = false;
@@ -76,9 +76,9 @@ public final class XmlSnipplet extends BaseFilterReader implements SnippetParser
 	@Override
 	public Snippets parse() throws IOException {
 		String line = null;
-		final Snippets snipplets = new Snippets();
+		final Snippets snippets = new Snippets();
 
-		final Stack<SnippletBuilder> snippletTree = new Stack<SnippletBuilder>();
+		final Stack<SnippetBuilder> snippetTree = new Stack<SnippetBuilder>();
 
 		for (;;) {
 			line = this.tokenizer.getToken(this.in);
@@ -88,97 +88,97 @@ public final class XmlSnipplet extends BaseFilterReader implements SnippetParser
 			{
 				final Token token = this.next(line);
 				switch (token) {
-				case SNIPPLET_DEFINE:
+				case SNIPPET_DEFINE:
 					break;
-				case SNIPPLET_BEGIN:
-					final SnippletBuilder current = this.parseSnipplet(line.trim());
-					if (!snippletTree.empty()) {
-						current.setParent(snippletTree.peek());
+				case SNIPPET_BEGIN:
+					final SnippetBuilder current = this.parseSnippet(line.trim());
+					if (!snippetTree.empty()) {
+						current.setParent(snippetTree.peek());
 					}
-					snippletTree.push(current);
+					snippetTree.push(current);
 					break;
-				case SNIPPLET_FROM:
-					assert (!snippletTree.empty());
-					snippletTree.peek().switchToFrom();
+				case SNIPPET_FROM:
+					assert (!snippetTree.empty());
+					snippetTree.peek().switchToFrom();
 					break;
-				case SNIPPLET_TO:
-					assert (!snippletTree.empty());
-					snippletTree.peek().switchToTo();
+				case SNIPPET_TO:
+					assert (!snippetTree.empty());
+					snippetTree.peek().switchToTo();
 					break;
-				case SNIPPLET_END_FROMTO:
+				case SNIPPET_END_FROMTO:
 					break; // ignore
-				case SNIPPLET_END:
-					assert (!snippletTree.empty());
-					// close the snipplet
-					final SnippletBuilder sb = snippletTree.pop();
-					snipplets.add(sb.step, sb.asSnipplet());
+				case SNIPPET_END:
+					assert (!snippetTree.empty());
+					// close the snippet
+					final SnippetBuilder sb = snippetTree.pop();
+					snippets.add(sb.step, sb.asSnippet());
 					break;
 				default:
-					if (!snippletTree.empty())
-						snippletTree.peek().addCode(line);
+					if (!snippetTree.empty())
+						snippetTree.peek().addCode(line);
 					break;
 				}
 			}
 		}
-		return snipplets;
+		return snippets;
 	}
 
 	private enum Token {
-		LINE, SNIPPLET_DEFINE, SNIPPLET_BEGIN, SNIPPLET_END, SNIPPLET_FROM, SNIPPLET_TO, SNIPPLET_END_FROMTO
+		LINE, SNIPPET_DEFINE, SNIPPET_BEGIN, SNIPPET_END, SNIPPET_FROM, SNIPPET_TO, SNIPPET_END_FROMTO
 	}
 
 	private Token next(final String line) {
 		final String tline = line.trim();
 		if (tline.isEmpty())
 			return Token.LINE;
-		if (tline.matches("<.* xmlns:snipplet=\".*\".*>")) // snipplet xml namespace define
-			return Token.SNIPPLET_DEFINE;
-		if (tline.matches("<snipplet:(insert|remove|fromto).*>"))
-			return Token.SNIPPLET_BEGIN;
-		if (tline.matches("<snipplet:from\\s*>"))
-			return Token.SNIPPLET_FROM;
-		if (tline.matches("<snipplet:to\\s*>"))
-			return Token.SNIPPLET_TO;
-		if (tline.matches("</snipplet:(to|from)\\s*>"))
-			return Token.SNIPPLET_END_FROMTO;
-		if (tline.matches("</snipplet:\\w+\\s*>"))
-			return Token.SNIPPLET_END;
+		if (tline.matches("<.* xmlns:snippet=\".*\".*>")) // snippet xml namespace define
+			return Token.SNIPPET_DEFINE;
+		if (tline.matches("<snippet:(insert|remove|fromto).*>"))
+			return Token.SNIPPET_BEGIN;
+		if (tline.matches("<snippet:from\\s*>"))
+			return Token.SNIPPET_FROM;
+		if (tline.matches("<snippet:to\\s*>"))
+			return Token.SNIPPET_TO;
+		if (tline.matches("</snippet:(to|from)\\s*>"))
+			return Token.SNIPPET_END_FROMTO;
+		if (tline.matches("</snippet:\\w+\\s*>"))
+			return Token.SNIPPET_END;
 		return Token.LINE;
 	}
 
-	private final Stack<SnippletTransformer> stepStack = new Stack<SnippletTransformer>();
+	private final Stack<SnippetTransformer> stepStack = new Stack<SnippetTransformer>();
 
 	private String transformLine(final String line) {
 		final Token token = this.next(line);
 		switch (token) {
-		case SNIPPLET_DEFINE:
-			return line.replaceFirst("xmlns:snipplet=\".*\"", ""); // cut out namespace definition
-		case SNIPPLET_BEGIN:
-			this.stepStack.push(this.extractSnippletTransformer(line.trim()));
+		case SNIPPET_DEFINE:
+			return line.replaceFirst("xmlns:snippet=\".*\"", ""); // cut out namespace definition
+		case SNIPPET_BEGIN:
+			this.stepStack.push(this.extractSnippetTransformer(line.trim()));
 			return this.stepStack.peek().begin(line);
-		case SNIPPLET_FROM:
+		case SNIPPET_FROM:
 			assert (!this.stepStack.isEmpty());
-			assert (this.stepStack.peek() instanceof FromToSnippletTransformer);
-			return ((FromToSnippletTransformer) this.stepStack.peek()).from(line);
-		case SNIPPLET_TO:
+			assert (this.stepStack.peek() instanceof FromToSnippetTransformer);
+			return ((FromToSnippetTransformer) this.stepStack.peek()).from(line);
+		case SNIPPET_TO:
 			assert (!this.stepStack.isEmpty());
-			assert (this.stepStack.peek() instanceof FromToSnippletTransformer);
-			return ((FromToSnippletTransformer) this.stepStack.peek()).to(line);
-		case SNIPPLET_END_FROMTO:
+			assert (this.stepStack.peek() instanceof FromToSnippetTransformer);
+			return ((FromToSnippetTransformer) this.stepStack.peek()).to(line);
+		case SNIPPET_END_FROMTO:
 			assert (!this.stepStack.isEmpty());
-			assert (this.stepStack.peek() instanceof FromToSnippletTransformer);
+			assert (this.stepStack.peek() instanceof FromToSnippetTransformer);
 			return null;
-		case SNIPPLET_END:
+		case SNIPPET_END:
 			assert (!this.stepStack.isEmpty());
 			return this.stepStack.pop().end(line);
 		default:
 			if (this.stepStack.isEmpty())
 				return line;
-			return this.transformSnippletLine(line);
+			return this.transformSnippetLine(line);
 		}
 	}
 
-	private String transformSnippletLine(String line) {
+	private String transformSnippetLine(String line) {
 		// back to forth
 		for (int i = this.stepStack.size() - 1; i >= 0; --i) {
 			line = this.stepStack.get(i).line(line);
@@ -188,36 +188,36 @@ public final class XmlSnipplet extends BaseFilterReader implements SnippetParser
 		return line;
 	}
 
-	private class SnippletBuilder {
+	private class SnippetBuilder {
 		public Snippet.Action action;
 		public final int step;
 		public final int subStep;
 		private final String description;
 		private final StringBuilder codeThen = new StringBuilder();
 		private final StringBuilder codeElse = new StringBuilder();
-		private SnippletBuilder parent = null;
+		private SnippetBuilder parent = null;
 		private boolean inFrom = false, inTo = false;
 
-		public SnippletBuilder(final Action action, final int step, final int subStep, final String description) {
+		public SnippetBuilder(final Action action, final int step, final int subStep, final String description) {
 			this.action = action;
 			this.step = step;
 			this.subStep = subStep;
 			this.description = description;
 		}
 
-		public void setParent(final SnippletBuilder parent) {
+		public void setParent(final SnippetBuilder parent) {
 			this.parent = parent;
-			parent.addCode(createMarker(this.step, this.subStep)); // create a marker for the new snipplet in the old snipplet
+			parent.addCode(createMarker(this.step, this.subStep)); // create a marker for the new snippet in the old snippet
 		}
 
 		public void addCode(final String line) {
 			if (this.inTo)
-				this.codeElse.append(line).append(XmlSnipplet.this.tokenizer.getPostToken());
+				this.codeElse.append(line).append(XmlSnippet.this.tokenizer.getPostToken());
 			else if (this.action != Action.FROM_TO || this.inFrom) {
 				if ((this.action == Action.REMOVE || this.action == Action.FROM_TO) && this.parent != null) {
 					this.parent.addCode(line); // add the code to the parent
 				}
-				this.codeThen.append(line).append(XmlSnipplet.this.tokenizer.getPostToken());
+				this.codeThen.append(line).append(XmlSnippet.this.tokenizer.getPostToken());
 			}
 		}
 
@@ -229,7 +229,7 @@ public final class XmlSnipplet extends BaseFilterReader implements SnippetParser
 			this.inTo = true;
 		}
 
-		public Snippet asSnipplet() {
+		public Snippet asSnippet() {
 			switch (this.action) {
 			case INSERT:
 				return Snippet.insert(this.subStep, this.description, this.codeThen.toString());
@@ -243,36 +243,36 @@ public final class XmlSnipplet extends BaseFilterReader implements SnippetParser
 
 	}
 
-	private SnippletTransformer extractSnippletTransformer(final String tline) {
-		final SnippletBuilder s = this.parseSnipplet(tline);
+	private SnippetTransformer extractSnippetTransformer(final String tline) {
+		final SnippetBuilder s = this.parseSnippet(tline);
 
 		switch(s.action) {
 		case INSERT:
-			return new InsertSnippletTransformer(s.step, s.subStep);
+			return new InsertSnippetTransformer(s.step, s.subStep);
 		case REMOVE:
-			return new RemoveSnippletTransformer(s.step, s.subStep);
+			return new RemoveSnippetTransformer(s.step, s.subStep);
 		case FROM_TO:
-			return new FromToSnippletTransformer(s.step, s.subStep);
+			return new FromToSnippetTransformer(s.step, s.subStep);
 		default:
-			throw new IllegalStateException("invalid snipplet begin line: " + tline);
+			throw new IllegalStateException("invalid snippet begin line: " + tline);
 		}
 	}
 
-	private SnippletBuilder parseSnipplet(final String tline) {
-		final Pattern p = Pattern.compile("<snipplet:(\\w+)\\s+step=\"(\\d+)\"\\s+subStep=\"(\\d+)\"\\s+description=\"(.*)\"\\s*>");
+	private SnippetBuilder parseSnippet(final String tline) {
+		final Pattern p = Pattern.compile("<snippet:(\\w+)\\s+step=\"(\\d+)\"\\s+subStep=\"(\\d+)\"\\s+description=\"(.*)\"\\s*>");
 		final Matcher matcher = p.matcher(tline);
 		if (!matcher.find())
-			throw new IllegalStateException("invalid snipplet begin line: " + tline);
+			throw new IllegalStateException("invalid snippet begin line: " + tline);
 		final int step = Integer.parseInt(matcher.group(2));
 		final int subStep = Integer.parseInt(matcher.group(3));
 		if ("INSERT".equalsIgnoreCase(matcher.group(1)))
-			return new SnippletBuilder(Action.INSERT, step, subStep, matcher.group(4));
+			return new SnippetBuilder(Action.INSERT, step, subStep, matcher.group(4));
 		else if ("REMOVE".equalsIgnoreCase(matcher.group(1)))
-			return new SnippletBuilder(Action.REMOVE, step, subStep, matcher.group(4));
+			return new SnippetBuilder(Action.REMOVE, step, subStep, matcher.group(4));
 		else if ("fromto".equalsIgnoreCase(matcher.group(1)))
-			return new SnippletBuilder(Action.FROM_TO, step, subStep, matcher.group(4));
+			return new SnippetBuilder(Action.FROM_TO, step, subStep, matcher.group(4));
 		else
-			throw new IllegalStateException("invalid snipplet begin line: " + tline);
+			throw new IllegalStateException("invalid snippet begin line: " + tline);
 	}
 
 	static String createMarker(final int step, final int substep) {
@@ -296,20 +296,20 @@ public final class XmlSnipplet extends BaseFilterReader implements SnippetParser
 		return new String(i);
 	}
 
-	private static interface SnippletTransformer {
+	private static interface SnippetTransformer {
 		String begin(String line);
 		String line(String line);
 
 		String end(String line);
 	}
 
-	public abstract class BaseSnippletTransformer implements SnippletTransformer {
-		protected final int snippletStep;
-		protected final int snippletSubStep;
+	public abstract class BaseSnippetTransformer implements SnippetTransformer {
+		protected final int snippetStep;
+		protected final int snippetSubStep;
 
-		public BaseSnippletTransformer(final int snippletStep, final int snippletSubStep) {
-			this.snippletStep = snippletStep;
-			this.snippletSubStep = snippletSubStep;
+		public BaseSnippetTransformer(final int snippetStep, final int snippetSubStep) {
+			this.snippetStep = snippetStep;
+			this.snippetSubStep = snippetSubStep;
 		}
 
 		@Override
@@ -319,14 +319,14 @@ public final class XmlSnipplet extends BaseFilterReader implements SnippetParser
 
 		@Override
 		public final String begin(final String line) {
-			if (XmlSnipplet.this.createMarkers && !this.afterStep())
-				return extractIntention(line) + createMarker(this.snippletStep, this.snippletSubStep);
+			if (XmlSnippet.this.createMarkers && !this.afterStep())
+				return extractIntention(line) + createMarker(this.snippetStep, this.snippetSubStep);
 			return null;
 		}
 
 		protected final String correctIntention(final String line, final int correction) {
 			if (correction > 0) {
-				return XmlSnipplet.intention(correction) + line;
+				return XmlSnippet.intention(correction) + line;
 			} else {
 				String intention = extractIntention(line);
 				final String rest = line.substring(intention.length());
@@ -338,14 +338,14 @@ public final class XmlSnipplet extends BaseFilterReader implements SnippetParser
 		}
 
 		protected boolean afterStep() {
-			return this.snippletStep <= XmlSnipplet.this.step;
+			return this.snippetStep <= XmlSnippet.this.step;
 		}
 	}
 
-	private class InsertSnippletTransformer extends BaseSnippletTransformer {
+	private class InsertSnippetTransformer extends BaseSnippetTransformer {
 
-		public InsertSnippletTransformer(final int snippletStep, final int snippletSubStep) {
-			super(snippletStep, snippletSubStep);
+		public InsertSnippetTransformer(final int snippetStep, final int snippetSubStep) {
+			super(snippetStep, snippetSubStep);
 		}
 
 		@Override
@@ -354,10 +354,10 @@ public final class XmlSnipplet extends BaseFilterReader implements SnippetParser
 		}
 	}
 
-	private class RemoveSnippletTransformer extends BaseSnippletTransformer {
+	private class RemoveSnippetTransformer extends BaseSnippetTransformer {
 
-		public RemoveSnippletTransformer(final int snippletStep, final int snippletSubStep) {
-			super(snippletStep, snippletSubStep);
+		public RemoveSnippetTransformer(final int snippetStep, final int snippetSubStep) {
+			super(snippetStep, snippetSubStep);
 		}
 
 		@Override
@@ -366,13 +366,13 @@ public final class XmlSnipplet extends BaseFilterReader implements SnippetParser
 		}
 	}
 
-	private class FromToSnippletTransformer extends BaseSnippletTransformer {
+	private class FromToSnippetTransformer extends BaseSnippetTransformer {
 
 		private boolean inFrom;
 		private boolean inTo;
 
-		public FromToSnippletTransformer(final int snippletStep, final int snippletSubStep) {
-			super(snippletStep, snippletSubStep);
+		public FromToSnippetTransformer(final int snippetStep, final int snippetSubStep) {
+			super(snippetStep, snippetSubStep);
 		}
 
 		public String from(final String line) {

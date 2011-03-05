@@ -11,11 +11,11 @@ import org.apache.tools.ant.filters.BaseFilterReader;
 import org.apache.tools.ant.util.LineTokenizer;
 
 import at.jku.snippetmaker.Snippet;
+import at.jku.snippetmaker.Snippet.Action;
 import at.jku.snippetmaker.SnippetParser;
 import at.jku.snippetmaker.Snippets;
-import at.jku.snippetmaker.Snippet.Action;
 
-public final class CppSnipplet extends BaseFilterReader implements SnippetParser {
+public final class CppSnippet extends BaseFilterReader implements SnippetParser {
 
 	private final int step;
 	private final boolean createMarkers;
@@ -25,20 +25,20 @@ public final class CppSnipplet extends BaseFilterReader implements SnippetParser
 	private int _linePos = 0;
 
 	public static BaseFilterReader createFilterReader(final Reader in, final int step, final boolean createMarkers) {
-		return new CppSnipplet(in, step, createMarkers);
+		return new CppSnippet(in, step, createMarkers);
 	}
 
 	public static SnippetParser createParser(final Reader in) {
-		return new CppSnipplet(in);
+		return new CppSnippet(in);
 	}
 
-	private CppSnipplet(final Reader in, final int step, final boolean createMarkers) {
+	private CppSnippet(final Reader in, final int step, final boolean createMarkers) {
 		super(in);
 		this.step = step;
 		this.createMarkers = createMarkers;
 	}
 
-	private CppSnipplet(final Reader in) {
+	private CppSnippet(final Reader in) {
 		super(in);
 		this.step = Integer.MAX_VALUE;
 		this.createMarkers = false;
@@ -75,9 +75,9 @@ public final class CppSnipplet extends BaseFilterReader implements SnippetParser
 	@Override
 	public Snippets parse() throws IOException {
 		String line = null;
-		final Snippets snipplets = new Snippets();
+		final Snippets snippets = new Snippets();
 
-		final Stack<SnippletBuilder> snippletTree = new Stack<SnippletBuilder>();
+		final Stack<SnippetBuilder> snippetTree = new Stack<SnippetBuilder>();
 
 		for (;;) {
 			line = this.tokenizer.getToken(this.in);
@@ -87,66 +87,66 @@ public final class CppSnipplet extends BaseFilterReader implements SnippetParser
 			{
 				final Token token = this.next(line);
 				switch (token) {
-				case SNIPPLET_DEFINE:
-				case SNIPPLET_INCLUDE:
+				case SNIPPET_DEFINE:
+				case SNIPPET_INCLUDE:
 					break;
-				case SNIPPLET_BEGIN:
-					final SnippletBuilder current = this.parseSnipplet(line.trim());
-					if (!snippletTree.empty()) {
-						current.setParent(snippletTree.peek());
+				case SNIPPET_BEGIN:
+					final SnippetBuilder current = this.parseSnippet(line.trim());
+					if (!snippetTree.empty()) {
+						current.setParent(snippetTree.peek());
 					}
-					snippletTree.push(current);
+					snippetTree.push(current);
 					break;
 				case IF:
-					if(!snippletTree.empty()) {
-						snippletTree.peek().nestedIfs++;
-						snippletTree.peek().addCode(line);
+					if (!snippetTree.empty()) {
+						snippetTree.peek().nestedIfs++;
+						snippetTree.peek().addCode(line);
 					}
 					break;
 				case ELIF:
 				case ELSE:
-					if (!snippletTree.empty() && snippletTree.peek().nestedIfs > 0) {
-						snippletTree.peek().addCode(line);
-					} else if (!snippletTree.empty())
-						snippletTree.peek().switchToElseOrElseIf();
+					if (!snippetTree.empty() && snippetTree.peek().nestedIfs > 0) {
+						snippetTree.peek().addCode(line);
+					} else if (!snippetTree.empty())
+						snippetTree.peek().switchToElseOrElseIf();
 					break;
 				case ENDIF:
-					if (!snippletTree.empty() && snippletTree.peek().nestedIfs > 0) {
-						snippletTree.peek().addCode(line);
-						snippletTree.peek().nestedIfs--;
-					} else if (!snippletTree.empty()) {
-						// close the snipplet
-						final SnippletBuilder sb = snippletTree.pop();
+					if (!snippetTree.empty() && snippetTree.peek().nestedIfs > 0) {
+						snippetTree.peek().addCode(line);
+						snippetTree.peek().nestedIfs--;
+					} else if (!snippetTree.empty()) {
+						// close the snippet
+						final SnippetBuilder sb = snippetTree.pop();
 						assert (sb.nestedIfs == 0);
-						snipplets.add(sb.step, sb.asSnipplet());
+						snippets.add(sb.step, sb.asSnippet());
 					}
 					break;
 				default:
-					if (!snippletTree.empty())
-						snippletTree.peek().addCode(line);
+					if (!snippetTree.empty())
+						snippetTree.peek().addCode(line);
 					break;
 				}
 			}
 		}
-		return snipplets;
+		return snippets;
 	}
 
 	private enum Token {
-		LINE, SNIPPLET_INCLUDE, SNIPPLET_DEFINE, SNIPPLET_BEGIN, IF, ELIF, ELSE, ENDIF
+		LINE, SNIPPET_INCLUDE, SNIPPET_DEFINE, SNIPPET_BEGIN, IF, ELIF, ELSE, ENDIF
 	}
 
 	private Token next(final String line) {
 		final String tline = line.trim();
 		if (tline.isEmpty())
 			return Token.LINE;
-		if (tline.matches("# *include *[\"<]snipplets\\.h[\">]")) // snipplet include
-			return Token.SNIPPLET_INCLUDE;
-		if (tline.matches("# *define +SNIPPLET_.*")) // snipplet step definition
-			return Token.SNIPPLET_DEFINE;
+		if (tline.matches("# *include *[\"<]snippets\\.h[\">]")) // snippet include
+			return Token.SNIPPET_INCLUDE;
+		if (tline.matches("# *define +SNIPPET_.*")) // snippet step definition
+			return Token.SNIPPET_DEFINE;
 
 		if (tline.matches("# *if +.*")) {
-			if (tline.matches("# *if +SNIPPLET_\\w+.*"))
-				return Token.SNIPPLET_BEGIN;
+			if (tline.matches("# *if +SNIPPET_\\w+.*"))
+				return Token.SNIPPET_BEGIN;
 			return Token.IF;
 		}
 		if (tline.matches("# *elif +.*"))
@@ -158,19 +158,19 @@ public final class CppSnipplet extends BaseFilterReader implements SnippetParser
 		return Token.LINE;
 	}
 
-	private final Stack<SnippletTransformer> stepStack = new Stack<SnippletTransformer>();
+	private final Stack<SnippetTransformer> stepStack = new Stack<SnippetTransformer>();
 
 	private String transformLine(final String line) {
 		final Token token = this.next(line);
 		switch (token) {
-		case SNIPPLET_DEFINE:
-		case SNIPPLET_INCLUDE:
+		case SNIPPET_DEFINE:
+		case SNIPPET_INCLUDE:
 			return null;
-		case SNIPPLET_BEGIN:
-			this.stepStack.push(this.extractSnippletTransformer(line.trim()));
+		case SNIPPET_BEGIN:
+			this.stepStack.push(this.extractSnippetTransformer(line.trim()));
 			return this.stepStack.peek().begin(line);
 		case IF:
-			this.stepStack.push(new IdentitySnippletTransformer()); // ordinary if but have to remember
+			this.stepStack.push(new IdentitySnippetTransformer()); // ordinary if but have to remember
 			return this.stepStack.peek().begin(line);
 		case ELSE:
 			assert (!this.stepStack.isEmpty());
@@ -184,11 +184,11 @@ public final class CppSnipplet extends BaseFilterReader implements SnippetParser
 		default:
 			if (this.stepStack.isEmpty())
 				return line;
-			return this.transformSnippletLine(line);
+			return this.transformSnippetLine(line);
 		}
 	}
 
-	private String transformSnippletLine(String line) {
+	private String transformSnippetLine(String line) {
 		// back to forth
 		for (int i = this.stepStack.size() - 1; i >= 0; --i) {
 			line = this.stepStack.get(i).line(line);
@@ -198,37 +198,37 @@ public final class CppSnipplet extends BaseFilterReader implements SnippetParser
 		return line;
 	}
 
-	private class SnippletBuilder {
+	private class SnippetBuilder {
 		public Snippet.Action action;
 		public final int step;
 		public final int subStep;
 		private final String description;
 		private final StringBuilder codeThen = new StringBuilder();
 		private final StringBuilder codeElse = new StringBuilder();
-		private SnippletBuilder parent = null;
+		private SnippetBuilder parent = null;
 		public int nestedIfs = 0;
 		private boolean inElsePath = false;
 
-		public SnippletBuilder(final Action action, final int step, final int subStep, final String description) {
+		public SnippetBuilder(final Action action, final int step, final int subStep, final String description) {
 			this.action = action;
 			this.step = step;
 			this.subStep = subStep;
 			this.description = description;
 		}
 
-		public void setParent(final SnippletBuilder parent) {
+		public void setParent(final SnippetBuilder parent) {
 			this.parent = parent;
-			parent.addCode(createMarker(this.step, this.subStep)); // create a marker for the new snipplet in the old snipplet
+			parent.addCode(createMarker(this.step, this.subStep)); // create a marker for the new snippet in the old snippet
 		}
 
 		public void addCode(final String line) {
 			if (this.inElsePath) {
-				this.codeElse.append(line).append(CppSnipplet.this.tokenizer.getPostToken());
+				this.codeElse.append(line).append(CppSnippet.this.tokenizer.getPostToken());
 			} else {
 				if ((this.action == Action.REMOVE || this.action == Action.FROM_TO) && this.parent != null) {
 					this.parent.addCode(line); // add the code to the parent
 				}
-				this.codeThen.append(line).append(CppSnipplet.this.tokenizer.getPostToken());
+				this.codeThen.append(line).append(CppSnippet.this.tokenizer.getPostToken());
 			}
 		}
 
@@ -236,7 +236,7 @@ public final class CppSnipplet extends BaseFilterReader implements SnippetParser
 			this.inElsePath = true;
 		}
 
-		public Snippet asSnipplet() {
+		public Snippet asSnippet() {
 			switch (this.action) {
 			case INSERT:
 				return Snippet.insert(this.subStep, this.description, this.codeThen.toString());
@@ -250,36 +250,36 @@ public final class CppSnipplet extends BaseFilterReader implements SnippetParser
 
 	}
 
-	private SnippletTransformer extractSnippletTransformer(final String tline) {
-		final SnippletBuilder s = this.parseSnipplet(tline);
+	private SnippetTransformer extractSnippetTransformer(final String tline) {
+		final SnippetBuilder s = this.parseSnippet(tline);
 
 		switch(s.action) {
 		case INSERT:
-			return new InsertSnippletTransformer(s.step, s.subStep);
+			return new InsertSnippetTransformer(s.step, s.subStep);
 		case REMOVE:
-			return new RemoveSnippletTransformer(s.step, s.subStep);
+			return new RemoveSnippetTransformer(s.step, s.subStep);
 		case FROM_TO:
-			return new FromToSnippletTransformer(s.step, s.subStep);
+			return new FromToSnippetTransformer(s.step, s.subStep);
 		default:
-			throw new IllegalStateException("invalid snipplet begin line: " + tline);
+			throw new IllegalStateException("invalid snippet begin line: " + tline);
 		}
 	}
 
-	private SnippletBuilder parseSnipplet(final String tline) {
-		final Pattern p = Pattern.compile("# *if +SNIPPLET_(\\w+)\\s*\\(\\s*(\\d+),\\s*(\\d+),\\s*\"(.*)\"\\s*(,.*)?\\)");
+	private SnippetBuilder parseSnippet(final String tline) {
+		final Pattern p = Pattern.compile("# *if +SNIPPET_(\\w+)\\s*\\(\\s*(\\d+),\\s*(\\d+),\\s*\"(.*)\"\\s*(,.*)?\\)");
 		final Matcher matcher = p.matcher(tline);
 		if (!matcher.find())
-			throw new IllegalStateException("invalid snipplet begin line: >>'" + tline + "<<");
+			throw new IllegalStateException("invalid snippet begin line: >>'" + tline + "<<");
 		final int step = Integer.parseInt(matcher.group(2));
 		final int subStep = Integer.parseInt(matcher.group(3));
 		if ("INSERT".equalsIgnoreCase(matcher.group(1)))
-			return new SnippletBuilder(Action.INSERT, step, subStep, matcher.group(4));
+			return new SnippetBuilder(Action.INSERT, step, subStep, matcher.group(4));
 		else if ("REMOVE".equalsIgnoreCase(matcher.group(1)))
-			return new SnippletBuilder(Action.REMOVE, step, subStep, matcher.group(4));
+			return new SnippetBuilder(Action.REMOVE, step, subStep, matcher.group(4));
 		else if ("FROM_TO".equalsIgnoreCase(matcher.group(1)))
-			return new SnippletBuilder(Action.FROM_TO, step, subStep, matcher.group(4));
+			return new SnippetBuilder(Action.FROM_TO, step, subStep, matcher.group(4));
 		else
-			throw new IllegalStateException("invalid snipplet begin line: " + tline);
+			throw new IllegalStateException("invalid snippet begin line: " + tline);
 	}
 
 	static String createMarker(final int step, final int substep) {
@@ -296,7 +296,7 @@ public final class CppSnipplet extends BaseFilterReader implements SnippetParser
 		return b.toString();
 	}
 
-	private static interface SnippletTransformer {
+	private static interface SnippetTransformer {
 		String begin(String line);
 		String line(String line);
 
@@ -305,7 +305,7 @@ public final class CppSnipplet extends BaseFilterReader implements SnippetParser
 		String end(String line);
 	}
 
-	private static class IdentitySnippletTransformer implements SnippletTransformer {
+	private static class IdentitySnippetTransformer implements SnippetTransformer {
 		@Override
 		public String end(final String line) {
 			return line;
@@ -331,14 +331,14 @@ public final class CppSnipplet extends BaseFilterReader implements SnippetParser
 		}
 	}
 
-	public abstract class BaseSnippletTransformer implements SnippletTransformer {
+	public abstract class BaseSnippetTransformer implements SnippetTransformer {
 		protected boolean inElsePath = false;
-		protected final int snippletStep;
-		protected final int snippletSubStep;
+		protected final int snippetStep;
+		protected final int snippetSubStep;
 
-		public BaseSnippletTransformer(final int snippletStep, final int snippletSubStep) {
-			this.snippletStep = snippletStep;
-			this.snippletSubStep = snippletSubStep;
+		public BaseSnippetTransformer(final int snippetStep, final int snippetSubStep) {
+			this.snippetStep = snippetStep;
+			this.snippetSubStep = snippetSubStep;
 		}
 
 		@Override
@@ -348,18 +348,18 @@ public final class CppSnipplet extends BaseFilterReader implements SnippetParser
 
 		@Override
 		public final String begin(final String line) {
-			if (CppSnipplet.this.createMarkers && !this.afterStep())
-				return extractIntention(line) + createMarker(this.snippletStep, this.snippletSubStep);
+			if (CppSnippet.this.createMarkers && !this.afterStep())
+				return extractIntention(line) + createMarker(this.snippetStep, this.snippetSubStep);
 			return null;
 		}
 
 		protected boolean afterStep() {
-			return this.snippletStep <= CppSnipplet.this.step;
+			return this.snippetStep <= CppSnippet.this.step;
 		}
 
 		@Override
 		public final String elif(final String line) {
-			throw new IllegalStateException("snipplets doesn't support elif");
+			throw new IllegalStateException("snippets doesn't support elif");
 		}
 
 		@Override
@@ -369,10 +369,10 @@ public final class CppSnipplet extends BaseFilterReader implements SnippetParser
 		}
 	}
 
-	private class InsertSnippletTransformer extends BaseSnippletTransformer {
+	private class InsertSnippetTransformer extends BaseSnippetTransformer {
 
-		public InsertSnippletTransformer(final int snippletStep, final int snippletSubStep) {
-			super(snippletStep, snippletSubStep);
+		public InsertSnippetTransformer(final int snippetStep, final int snippetSubStep) {
+			super(snippetStep, snippetSubStep);
 		}
 
 		@Override
@@ -384,10 +384,10 @@ public final class CppSnipplet extends BaseFilterReader implements SnippetParser
 		}
 	}
 
-	private class RemoveSnippletTransformer extends BaseSnippletTransformer {
+	private class RemoveSnippetTransformer extends BaseSnippetTransformer {
 
-		public RemoveSnippletTransformer(final int snippletStep, final int snippletSubStep) {
-			super(snippletStep, snippletSubStep);
+		public RemoveSnippetTransformer(final int snippetStep, final int snippetSubStep) {
+			super(snippetStep, snippetSubStep);
 		}
 
 		@Override
@@ -399,10 +399,10 @@ public final class CppSnipplet extends BaseFilterReader implements SnippetParser
 		}
 	}
 
-	private class FromToSnippletTransformer extends BaseSnippletTransformer {
+	private class FromToSnippetTransformer extends BaseSnippetTransformer {
 
-		public FromToSnippletTransformer(final int snippletStep, final int snippletSubStep) {
-			super(snippletStep, snippletSubStep);
+		public FromToSnippetTransformer(final int snippetStep, final int snippetSubStep) {
+			super(snippetStep, snippetSubStep);
 		}
 
 		@Override

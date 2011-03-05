@@ -9,7 +9,7 @@ import java.util.Properties;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 
-import at.jku.snippetmaker.Snippets.SnippletStep;
+import at.jku.snippetmaker.Snippets.SnippetStep;
 
 public final class File extends SnippetTask {
 
@@ -43,7 +43,7 @@ public final class File extends SnippetTask {
 				this.log("invalid renderer " + this.type, e, Project.MSG_ERR);
 				return;
 			}
-			final Snippets snippets = this.parseSnipplets();
+			final Snippets snippets = this.parseSnippets();
 
 
 			final String endl = System.getProperty("line.separator");
@@ -61,7 +61,7 @@ public final class File extends SnippetTask {
 				writer = new PrintWriter(this.file);
 
 				writer.append(head.format(this.asArgs(endl)));
-				for (final SnippletStep step : snippets) {
+				for (final SnippetStep step : snippets) {
 					if (this.stepFilter != null && !this.stepFilter.include(step.getStep()))
 						continue;
 					writer.append(begin.format(this.asArgs(endl, step.getStep())));

@@ -14,7 +14,7 @@ public final class StepSize extends SnippetTask {
 	@Override
 	public void execute() throws BuildException {
 		assert (this.prop != null);
-		final Snippets s = this.parseSnipplets();
+		final Snippets s = this.parseSnippets();
 
 		this.getProject().setNewProperty(this.prop, "" + s.getStepSize());
 	}

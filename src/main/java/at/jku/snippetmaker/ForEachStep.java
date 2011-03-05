@@ -20,7 +20,7 @@ public class ForEachStep extends SnippetTask {
 			throw new BuildException("You must supply an embedded sequential " + "to perform");
 		}
 
-		final int stepSize = this.parseSnipplets().getStepSize();
+		final int stepSize = this.parseSnippets().getStepSize();
 
 		// Create a macro attribute
 		final MacroDef.Attribute attribute = new MacroDef.Attribute();
