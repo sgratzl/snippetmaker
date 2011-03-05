@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <antlib xmlns:current="ant:current" xmlns:rsel="antlib:org.apache.tools.ant.types.resources.selectors">
 
-	<taskdef name="file" classname="at.jku.snippletmaker.File" />
-	<taskdef name="stepSize" classname="at.jku.snippletmaker.StepSize" />
-	<typedef name="stepTransformer" classname="at.jku.snippletmaker.StepTransformer" />
-	<typedef name="forEachStep" classname="at.jku.snippletmaker.ForEachStep" />
+	<taskdef name="file" classname="at.jku.snippetmaker.File" />
+	<taskdef name="stepSize" classname="at.jku.snippetmaker.StepSize" />
+	<typedef name="stepTransformer" classname="at.jku.snippetmaker.StepTransformer" />
+	<typedef name="forEachStep" classname="at.jku.snippetmaker.ForEachStep" />
 
-	<typedef name="stepFilter" classname="at.jku.snippletmaker.StepFilter" />
+	<typedef name="stepFilter" classname="at.jku.snippetmaker.StepFilter" />
 
 	<!-- = = = = = = = = = = = = = = = = =
 		macrodef: transform

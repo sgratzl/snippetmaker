@@ -1,5 +1,5 @@
 /*$Id$*/
-package at.jku.snippletmaker.type;
+package at.jku.snippetmaker.type;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -10,12 +10,12 @@ import java.util.regex.Pattern;
 import org.apache.tools.ant.filters.BaseFilterReader;
 import org.apache.tools.ant.util.LineTokenizer;
 
-import at.jku.snippletmaker.Snipplet;
-import at.jku.snippletmaker.Snipplet.Action;
-import at.jku.snippletmaker.SnippletParser;
-import at.jku.snippletmaker.Snipplets;
+import at.jku.snippetmaker.Snippet;
+import at.jku.snippetmaker.SnippetParser;
+import at.jku.snippetmaker.Snippets;
+import at.jku.snippetmaker.Snippet.Action;
 
-public final class CppSnipplet extends BaseFilterReader implements SnippletParser {
+public final class CppSnipplet extends BaseFilterReader implements SnippetParser {
 
 	private final int step;
 	private final boolean createMarkers;
@@ -28,7 +28,7 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 		return new CppSnipplet(in, step, createMarkers);
 	}
 
-	public static SnippletParser createParser(final Reader in) {
+	public static SnippetParser createParser(final Reader in) {
 		return new CppSnipplet(in);
 	}
 
@@ -73,9 +73,9 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 	}
 
 	@Override
-	public Snipplets parse() throws IOException {
+	public Snippets parse() throws IOException {
 		String line = null;
-		final Snipplets snipplets = new Snipplets();
+		final Snippets snipplets = new Snippets();
 
 		final Stack<SnippletBuilder> snippletTree = new Stack<SnippletBuilder>();
 
@@ -199,7 +199,7 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 	}
 
 	private class SnippletBuilder {
-		public Snipplet.Action action;
+		public Snippet.Action action;
 		public final int step;
 		public final int subStep;
 		private final String description;
@@ -236,14 +236,14 @@ public final class CppSnipplet extends BaseFilterReader implements SnippletParse
 			this.inElsePath = true;
 		}
 
-		public Snipplet asSnipplet() {
+		public Snippet asSnipplet() {
 			switch (this.action) {
 			case INSERT:
-				return Snipplet.insert(this.subStep, this.description, this.codeThen.toString());
+				return Snippet.insert(this.subStep, this.description, this.codeThen.toString());
 			case REMOVE:
-				return Snipplet.remove(this.subStep, this.description, this.codeThen.toString());
+				return Snippet.remove(this.subStep, this.description, this.codeThen.toString());
 			case FROM_TO:
-				return Snipplet.from_to(this.subStep, this.description, this.codeThen.toString(), this.codeElse.toString());
+				return Snippet.from_to(this.subStep, this.description, this.codeThen.toString(), this.codeElse.toString());
 			}
 			throw new IllegalStateException();
 		}

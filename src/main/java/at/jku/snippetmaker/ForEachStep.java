@@ -1,11 +1,11 @@
 /*$Id$*/
-package at.jku.snippletmaker;
+package at.jku.snippetmaker;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.taskdefs.MacroDef;
 import org.apache.tools.ant.taskdefs.MacroInstance;
 
-public class ForEachStep extends SnippletTask {
+public class ForEachStep extends SnippetTask {
 	private MacroDef macroDef;
 
 	public Object createSequential() {

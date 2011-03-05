@@ -1,5 +1,5 @@
 /*$Id$*/
-package at.jku.snippletmaker;
+package at.jku.snippetmaker;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -9,12 +9,12 @@ import java.util.Properties;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 
-import at.jku.snippletmaker.Snipplets.SnippletStep;
+import at.jku.snippetmaker.Snippets.SnippletStep;
 
-public final class File extends SnippletTask {
+public final class File extends SnippetTask {
 
 	private Type type = Type.html;
-	private java.io.File file = new java.io.File("snipplets.html");
+	private java.io.File file = new java.io.File("snippets.html");
 	private StepFilter stepFilter;
 
 
@@ -43,7 +43,7 @@ public final class File extends SnippletTask {
 				this.log("invalid renderer " + this.type, e, Project.MSG_ERR);
 				return;
 			}
-			final Snipplets snipplets = this.parseSnipplets();
+			final Snippets snippets = this.parseSnipplets();
 
 
 			final String endl = System.getProperty("line.separator");
@@ -51,32 +51,32 @@ public final class File extends SnippletTask {
 			final MessageFormat tail = new MessageFormat(p.getProperty("file.end"));
 			final MessageFormat begin = new MessageFormat(p.getProperty("step.begin"));
 			final MessageFormat between = new MessageFormat(p.getProperty("step.between"));
-			final MessageFormat sinsert = new MessageFormat(p.getProperty("snipplet.insert"));
-			final MessageFormat sremove = new MessageFormat(p.getProperty("snipplet.remove"));
-			final MessageFormat sfromto = new MessageFormat(p.getProperty("snipplet.fromto"));
-			final MessageFormat sbetween = new MessageFormat(p.getProperty("snipplet.between"));
+			final MessageFormat sinsert = new MessageFormat(p.getProperty("snippet.insert"));
+			final MessageFormat sremove = new MessageFormat(p.getProperty("snippet.remove"));
+			final MessageFormat sfromto = new MessageFormat(p.getProperty("snippet.fromto"));
+			final MessageFormat sbetween = new MessageFormat(p.getProperty("snippet.between"));
 
 			PrintWriter writer = null;
 			try {
 				writer = new PrintWriter(this.file);
 
 				writer.append(head.format(this.asArgs(endl)));
-				for (final SnippletStep step : snipplets) {
+				for (final SnippletStep step : snippets) {
 					if (this.stepFilter != null && !this.stepFilter.include(step.getStep()))
 						continue;
 					writer.append(begin.format(this.asArgs(endl, step.getStep())));
-					for (final Snipplet snipplet : step) {
-						final String fullStep = step.getStep() + "." + snipplet.getSubStep();
-						switch (snipplet.getAction()) {
+					for (final Snippet snippet : step) {
+						final String fullStep = step.getStep() + "." + snippet.getSubStep();
+						switch (snippet.getAction()) {
 						case INSERT:
-							writer.append(sinsert.format(this.asArgs(endl, fullStep, snipplet.getDescription(), snipplet.getCodeToInsert())));
+							writer.append(sinsert.format(this.asArgs(endl, fullStep, snippet.getDescription(), snippet.getCodeToInsert())));
 							break;
 						case REMOVE:
-							writer.append(sremove.format(this.asArgs(endl, fullStep, snipplet.getDescription(), snipplet.getCodeToRemove())));
+							writer.append(sremove.format(this.asArgs(endl, fullStep, snippet.getDescription(), snippet.getCodeToRemove())));
 							break;
 						case FROM_TO:
-							writer.append(sfromto.format(this.asArgs(endl, fullStep, snipplet.getDescription(), snipplet.getCodeToRemove(),
-									snipplet.getCodeToInsert())));
+							writer.append(sfromto.format(this.asArgs(endl, fullStep, snippet.getDescription(), snippet.getCodeToRemove(),
+									snippet.getCodeToInsert())));
 							break;
 						}
 						writer.append(sbetween.format(this.asArgs(endl)));
@@ -85,7 +85,7 @@ public final class File extends SnippletTask {
 				}
 				writer.append(tail.format(this.asArgs(endl)));
 			} catch (final IOException e) {
-				this.log("can't create snipplet file: " + this.file, e, Project.MSG_ERR);
+				this.log("can't create snippet file: " + this.file, e, Project.MSG_ERR);
 			} finally {
 				if (writer != null)
 					writer.close();

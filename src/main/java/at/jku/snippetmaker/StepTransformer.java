@@ -1,12 +1,12 @@
 /*$Id$*/
-package at.jku.snippletmaker;
+package at.jku.snippetmaker;
 
 import java.io.Reader;
 
 import org.apache.tools.ant.filters.ChainableReader;
 
-import at.jku.snippletmaker.type.CppSnipplet;
-import at.jku.snippletmaker.type.XmlSnipplet;
+import at.jku.snippetmaker.type.CppSnipplet;
+import at.jku.snippetmaker.type.XmlSnipplet;
 
 public final class StepTransformer implements ChainableReader {
 	private int step = 0;

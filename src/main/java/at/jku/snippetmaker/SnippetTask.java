@@ -1,5 +1,5 @@
 /*$Id$*/
-package at.jku.snippletmaker;
+package at.jku.snippetmaker;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,18 +13,18 @@ import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.Resource;
 import org.apache.tools.ant.types.ResourceCollection;
 
-import at.jku.snippletmaker.type.CppSnipplet;
-import at.jku.snippletmaker.type.XmlSnipplet;
+import at.jku.snippetmaker.type.CppSnipplet;
+import at.jku.snippetmaker.type.XmlSnipplet;
 
-public abstract class SnippletTask extends Task {
+public abstract class SnippetTask extends Task {
 	private final List<ResourceCollection> collections = new ArrayList<ResourceCollection>();
 
 	public final void add(final ResourceCollection collection) {
 		this.collections.add(collection);
 	}
 
-	protected Snipplets parseSnipplets() {
-		final Snipplets snipplets = new Snipplets();
+	protected Snippets parseSnipplets() {
+		final Snippets snipplets = new Snippets();
 
 		for (final ResourceCollection r : this.collections) {
 			for (final Iterator<?> it = r.iterator(); it.hasNext();) {
@@ -38,7 +38,7 @@ public abstract class SnippletTask extends Task {
 		return snipplets;
 	}
 
-	private Snipplets parseSnipplets(final Resource resource) {
+	private Snippets parseSnipplets(final Resource resource) {
 		final String ext = this.getExtension(resource.getName());
 		try {
 			if ("cpp".equalsIgnoreCase(ext) || "h".equalsIgnoreCase(ext) || "glsl".equalsIgnoreCase(ext) || "frag".equalsIgnoreCase(ext)
@@ -49,12 +49,12 @@ public abstract class SnippletTask extends Task {
 				this.log("parsing resource: " + resource.getName() + " -> using xml", Project.MSG_INFO);
 				return XmlSnipplet.createParser(new BufferedReader(new InputStreamReader(resource.getInputStream()))).parse();
 			} else {
-				this.log("skipping resource: " + resource.getName() + " -> unknown how to parse snipplets", Project.MSG_DEBUG);
+				this.log("skipping resource: " + resource.getName() + " -> unknown how to parse snippets", Project.MSG_DEBUG);
 			}
 		} catch (final IOException e) {
 			this.log("skipping resource: " + resource.getName() + " -> error opening reader", e, Project.MSG_WARN);
 		}
-		return Snipplets.empty;
+		return Snippets.empty;
 
 	}
 

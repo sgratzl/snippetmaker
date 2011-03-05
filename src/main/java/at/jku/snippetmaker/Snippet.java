@@ -1,7 +1,7 @@
 /*$Id$*/
-package at.jku.snippletmaker;
+package at.jku.snippetmaker;
 
-public final class Snipplet implements Comparable<Snipplet> {
+public final class Snippet implements Comparable<Snippet> {
 	public enum Action {
 		INSERT, REMOVE, FROM_TO
 	}
@@ -13,7 +13,7 @@ public final class Snipplet implements Comparable<Snipplet> {
 	private final String description;
 
 
-	private Snipplet(final Action action, final int subStep, final String description, final String code, final String code2) {
+	private Snippet(final Action action, final int subStep, final String description, final String code, final String code2) {
 		this.action = action;
 		this.description = description;
 		this.subStep = subStep;
@@ -21,16 +21,16 @@ public final class Snipplet implements Comparable<Snipplet> {
 		this.code_remove = code2;
 	}
 
-	public static Snipplet insert(final int subStep, final String description, final String code) {
-		return new Snipplet(Action.INSERT, subStep, description, code, null);
+	public static Snippet insert(final int subStep, final String description, final String code) {
+		return new Snippet(Action.INSERT, subStep, description, code, null);
 	}
 
-	public static Snipplet remove(final int subStep, final String description, final String code) {
-		return new Snipplet(Action.REMOVE, subStep, description, null, code);
+	public static Snippet remove(final int subStep, final String description, final String code) {
+		return new Snippet(Action.REMOVE, subStep, description, null, code);
 	}
 
-	public static Snipplet from_to(final int subStep, final String description, final String from, final String to) {
-		return new Snipplet(Action.FROM_TO, subStep, description, to, from);
+	public static Snippet from_to(final int subStep, final String description, final String from, final String to) {
+		return new Snippet(Action.FROM_TO, subStep, description, to, from);
 	}
 
 	public String getCodeToInsert() {
@@ -50,7 +50,7 @@ public final class Snipplet implements Comparable<Snipplet> {
 	}
 
 	@Override
-	public int compareTo(final Snipplet o) {
+	public int compareTo(final Snippet o) {
 		return this.getSubStep() - o.getSubStep();
 	}
 

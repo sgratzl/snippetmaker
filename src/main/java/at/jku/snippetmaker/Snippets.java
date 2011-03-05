@@ -1,5 +1,5 @@
 /*$Id$*/
-package at.jku.snippletmaker;
+package at.jku.snippetmaker;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,14 +9,14 @@ import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import at.jku.snippletmaker.Snipplets.SnippletStep;
+import at.jku.snippetmaker.Snippets.SnippletStep;
 
-public final class Snipplets implements Iterable<SnippletStep> {
-	private final SortedMap<Integer, List<Snipplet>> snipplets = new TreeMap<Integer, List<Snipplet>>();
+public final class Snippets implements Iterable<SnippletStep> {
+	private final SortedMap<Integer, List<Snippet>> snipplets = new TreeMap<Integer, List<Snippet>>();
 
-	public static final Snipplets empty = new Snipplets();
+	public static final Snippets empty = new Snippets();
 
-	public Snipplets() {
+	public Snippets() {
 
 	}
 
@@ -29,7 +29,7 @@ public final class Snipplets implements Iterable<SnippletStep> {
 		return this.snipplets.lastKey().intValue();
 	}
 
-	public void merge(final Snipplets other) {
+	public void merge(final Snippets other) {
 		for (final SnippletStep s : other) {
 			if (!this.snipplets.containsKey(s.step))
 				this.snipplets.put(s.step, s.snipplets);
@@ -38,20 +38,20 @@ public final class Snipplets implements Iterable<SnippletStep> {
 		}
 	}
 
-	public void add(final int istep, final Snipplet snipplet) {
+	public void add(final int istep, final Snippet snipplet) {
 		final Integer step = Integer.valueOf(istep);
 
 		if(!this.snipplets.containsKey(step)) {
-			this.snipplets.put(step, new ArrayList<Snipplet>());
+			this.snipplets.put(step, new ArrayList<Snippet>());
 		}
 		this.snipplets.get(step).add(snipplet);
 	}
 
-	public static class SnippletStep implements Iterable<Snipplet> {
+	public static class SnippletStep implements Iterable<Snippet> {
 		private final int step;
-		private final List<Snipplet> snipplets;
+		private final List<Snippet> snipplets;
 
-		SnippletStep(final int step, final List<Snipplet> snipplets) {
+		SnippletStep(final int step, final List<Snippet> snipplets) {
 			this.step = step;
 			this.snipplets = snipplets;
 		}
@@ -61,15 +61,15 @@ public final class Snipplets implements Iterable<SnippletStep> {
 		}
 
 		@Override
-		public Iterator<Snipplet> iterator() {
+		public Iterator<Snippet> iterator() {
 			return this.snipplets.iterator();
 		}
 	}
 
 	@Override
 	public Iterator<SnippletStep> iterator() {
-		final Iterator<Entry<Integer, List<Snipplet>>> iterator = this.snipplets.entrySet().iterator();
-		return new Iterator<Snipplets.SnippletStep>() {
+		final Iterator<Entry<Integer, List<Snippet>>> iterator = this.snipplets.entrySet().iterator();
+		return new Iterator<Snippets.SnippletStep>() {
 			@Override
 			public boolean hasNext() {
 				return iterator.hasNext();
@@ -77,7 +77,7 @@ public final class Snipplets implements Iterable<SnippletStep> {
 
 			@Override
 			public SnippletStep next() {
-				final Entry<Integer, List<Snipplet>> next = iterator.next();
+				final Entry<Integer, List<Snippet>> next = iterator.next();
 				Collections.sort(next.getValue());
 				return new SnippletStep(next.getKey().intValue(), next.getValue());
 			}

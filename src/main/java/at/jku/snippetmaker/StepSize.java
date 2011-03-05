@@ -1,9 +1,9 @@
 /*$Id$*/
-package at.jku.snippletmaker;
+package at.jku.snippetmaker;
 
 import org.apache.tools.ant.BuildException;
 
-public final class StepSize extends SnippletTask {
+public final class StepSize extends SnippetTask {
 
 	private String prop = "stepSize";
 
@@ -14,7 +14,7 @@ public final class StepSize extends SnippletTask {
 	@Override
 	public void execute() throws BuildException {
 		assert (this.prop != null);
-		final Snipplets s = this.parseSnipplets();
+		final Snippets s = this.parseSnipplets();
 
 		this.getProject().setNewProperty(this.prop, "" + s.getStepSize());
 	}

@@ -1,5 +1,5 @@
 /*$Id$*/
-package at.jku.snippletmaker;
+package at.jku.snippetmaker;
 
 import java.util.BitSet;
 
