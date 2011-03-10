@@ -69,14 +69,14 @@ public final class File extends SnippetTask {
 						final String fullStep = step.getStep() + "." + snippet.getSubStep();
 						switch (snippet.getAction()) {
 						case INSERT:
-							writer.append(sinsert.format(this.asArgs(endl, fullStep, snippet.getDescription(), snippet.getCodeToInsert())));
+							writer.append(sinsert.format(this.asArgs(endl, fullStep, snippet.getDescription(), this.transformCode(snippet.getCodeToInsert()))));
 							break;
 						case REMOVE:
-							writer.append(sremove.format(this.asArgs(endl, fullStep, snippet.getDescription(), snippet.getCodeToRemove())));
+							writer.append(sremove.format(this.asArgs(endl, fullStep, snippet.getDescription(), this.transformCode(snippet.getCodeToRemove()))));
 							break;
 						case FROM_TO:
-							writer.append(sfromto.format(this.asArgs(endl, fullStep, snippet.getDescription(), snippet.getCodeToRemove(),
-									snippet.getCodeToInsert())));
+							writer.append(sfromto.format(this.asArgs(endl, fullStep, snippet.getDescription(), this.transformCode(snippet.getCodeToRemove()),
+									this.transformCode(snippet.getCodeToInsert()))));
 							break;
 						}
 						writer.append(sbetween.format(this.asArgs(endl)));
@@ -94,6 +94,13 @@ public final class File extends SnippetTask {
 			e.printStackTrace();
 			this.log("error: " + e.getMessage(), e, Project.MSG_ERR);
 		}
+	}
+
+	private String transformCode(final String code) {
+		if (this.type == Type.html) {
+			return code.replace("<", "&lt;").replace(">", "&gt;");
+		} else
+			return code;
 	}
 
 	private Object[] asArgs(final Object... args) {
