@@ -1,9 +1,17 @@
 /*$Id$*/
 package at.jku.snippetmaker;
 
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
+
 public final class Snippet implements Comparable<Snippet> {
 	public enum Action {
 		INSERT, REMOVE, FROM_TO
+	}
+
+	public enum Option {
+		USE_COMMENTS, NO_MARKER
 	}
 
 	private final int subStep;
@@ -11,27 +19,47 @@ public final class Snippet implements Comparable<Snippet> {
 	private final String code_insert;
 	private final String code_remove;
 	private final String description;
+	private final Set<Option> options;
 
-
-	private Snippet(final Action action, final int subStep, final String description, final String code, final String code2) {
+	private Snippet(final Action action, final int subStep, final String description, final String code, final String code2, final Set<Option> options) {
 		this.action = action;
 		this.description = description;
 		this.subStep = subStep;
 		this.code_insert = code;
 		this.code_remove = code2;
+		this.options = options;
 	}
 
-	public static Snippet insert(final int subStep, final String description, final String code) {
-		return new Snippet(Action.INSERT, subStep, description, code, null);
+	public static Snippet insert(final int subStep, final String description, final String code, final Set<Option> options) {
+		return new Snippet(Action.INSERT, subStep, description, code, null, options);
 	}
 
-	public static Snippet remove(final int subStep, final String description, final String code) {
-		return new Snippet(Action.REMOVE, subStep, description, null, code);
+	public static Snippet insert(final int subStep, final String description, final String code, final Option... options) {
+		return insert(subStep, description, code, asSet(options));
 	}
 
-	public static Snippet from_to(final int subStep, final String description, final String from, final String to) {
-		return new Snippet(Action.FROM_TO, subStep, description, to, from);
+	public static Snippet remove(final int subStep, final String description, final String code, final Set<Option> options) {
+		return new Snippet(Action.REMOVE, subStep, description, null, code, options);
 	}
+
+	public static Snippet remove(final int subStep, final String description, final String code, final Option... options) {
+		return remove(subStep, description, code, asSet(options));
+	}
+
+	public static Snippet from_to(final int subStep, final String description, final String from, final String to, final Set<Option> options) {
+		return new Snippet(Action.FROM_TO, subStep, description, to, from, options);
+	}
+
+	public static Snippet from_to(final int subStep, final String description, final String from, final String to, final Option... options) {
+		return from_to(subStep, description, from, to, asSet(options));
+	}
+
+	private static Set<Option> asSet(final Option[] options) {
+		if (options.length > 0)
+			return EnumSet.of(options[0], options);
+		return Collections.emptySet();
+	}
+
 
 	public String getCodeToInsert() {
 		return this.code_insert;
@@ -47,6 +75,10 @@ public final class Snippet implements Comparable<Snippet> {
 
 	public String getDescription() {
 		return this.description;
+	}
+
+	public boolean hasOption(final Option option) {
+		return this.options.contains(option);
 	}
 
 	@Override

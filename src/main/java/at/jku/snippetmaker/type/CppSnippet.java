@@ -3,6 +3,8 @@ package at.jku.snippetmaker.type;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,6 +14,7 @@ import org.apache.tools.ant.util.LineTokenizer;
 
 import at.jku.snippetmaker.Snippet;
 import at.jku.snippetmaker.Snippet.Action;
+import at.jku.snippetmaker.Snippet.Option;
 import at.jku.snippetmaker.SnippetParser;
 import at.jku.snippetmaker.Snippets;
 
@@ -198,27 +201,46 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 		return line;
 	}
 
+	private static Set<Option> parseOptions(final String options) {
+		final Set<Option> r = EnumSet.noneOf(Snippet.Option.class);
+		if (options == null || options.trim().length() == 0)
+			return r;
+		for (String option : options.split(",")) {
+			option = option.trim();
+			if (option.length() == 0)
+				continue;
+			if ("useComments".equalsIgnoreCase(option))
+				r.add(Snippet.Option.USE_COMMENTS);
+			else if ("noMarker".equalsIgnoreCase(option))
+				r.add(Snippet.Option.NO_MARKER);
+		}
+		return r;
+	}
+
 	private class SnippetBuilder {
 		public Snippet.Action action;
 		public final int step;
 		public final int subStep;
 		private final String description;
+		private final Set<Snippet.Option> options;
 		private final StringBuilder codeThen = new StringBuilder();
 		private final StringBuilder codeElse = new StringBuilder();
 		private SnippetBuilder parent = null;
 		public int nestedIfs = 0;
 		private boolean inElsePath = false;
 
-		public SnippetBuilder(final Action action, final int step, final int subStep, final String description) {
+		public SnippetBuilder(final Action action, final int step, final int subStep, final String description, final String options) {
 			this.action = action;
 			this.step = step;
 			this.subStep = subStep;
 			this.description = description;
+			this.options = parseOptions(options);
 		}
 
 		public void setParent(final SnippetBuilder parent) {
 			this.parent = parent;
-			parent.addCode(createMarker(this.step, this.subStep)); // create a marker for the new snippet in the old snippet
+			if (CppSnippet.this.createMarkers && !this.hasOption(Snippet.Option.NO_MARKER))
+				parent.addCode(createMarker(this.step, this.subStep)); // create a marker for the new snippet in the old snippet
 		}
 
 		public void addCode(final String line) {
@@ -232,6 +254,10 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 			}
 		}
 
+		public boolean hasOption(final Snippet.Option option) {
+			return this.options.contains(option);
+		}
+
 		public void switchToElseOrElseIf() {
 			this.inElsePath = true;
 		}
@@ -239,11 +265,11 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 		public Snippet asSnippet() {
 			switch (this.action) {
 			case INSERT:
-				return Snippet.insert(this.subStep, this.description, this.codeThen.toString());
+				return Snippet.insert(this.subStep, this.description, this.codeThen.toString(), this.options);
 			case REMOVE:
-				return Snippet.remove(this.subStep, this.description, this.codeThen.toString());
+				return Snippet.remove(this.subStep, this.description, this.codeThen.toString(), this.options);
 			case FROM_TO:
-				return Snippet.from_to(this.subStep, this.description, this.codeThen.toString(), this.codeElse.toString());
+				return Snippet.from_to(this.subStep, this.description, this.codeThen.toString(), this.codeElse.toString(), this.options);
 			}
 			throw new IllegalStateException();
 		}
@@ -255,11 +281,11 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 
 		switch(s.action) {
 		case INSERT:
-			return new InsertSnippetTransformer(s.step, s.subStep);
+			return new InsertSnippetTransformer(s);
 		case REMOVE:
-			return new RemoveSnippetTransformer(s.step, s.subStep);
+			return new RemoveSnippetTransformer(s);
 		case FROM_TO:
-			return new FromToSnippetTransformer(s.step, s.subStep);
+			return new FromToSnippetTransformer(s);
 		default:
 			throw new IllegalStateException("invalid snippet begin line: " + tline);
 		}
@@ -272,12 +298,13 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 			throw new IllegalStateException("invalid snippet begin line: >>'" + tline + "<<");
 		final int step = Integer.parseInt(matcher.group(2));
 		final int subStep = Integer.parseInt(matcher.group(3));
+		final String options = (matcher.groupCount() > 4) ? matcher.group(5) : "";
 		if ("INSERT".equalsIgnoreCase(matcher.group(1)))
-			return new SnippetBuilder(Action.INSERT, step, subStep, matcher.group(4));
+			return new SnippetBuilder(Action.INSERT, step, subStep, matcher.group(4), options);
 		else if ("REMOVE".equalsIgnoreCase(matcher.group(1)))
-			return new SnippetBuilder(Action.REMOVE, step, subStep, matcher.group(4));
+			return new SnippetBuilder(Action.REMOVE, step, subStep, matcher.group(4), options);
 		else if ("FROM_TO".equalsIgnoreCase(matcher.group(1)))
-			return new SnippetBuilder(Action.FROM_TO, step, subStep, matcher.group(4));
+			return new SnippetBuilder(Action.FROM_TO, step, subStep, matcher.group(4), options);
 		else
 			throw new IllegalStateException("invalid snippet begin line: " + tline);
 	}
@@ -332,13 +359,11 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 	}
 
 	public abstract class BaseSnippetTransformer implements SnippetTransformer {
-		protected boolean inElsePath = false;
-		protected final int snippetStep;
-		protected final int snippetSubStep;
+		private boolean inElsePath = false;
+		protected final SnippetBuilder snippet;
 
-		public BaseSnippetTransformer(final int snippetStep, final int snippetSubStep) {
-			this.snippetStep = snippetStep;
-			this.snippetSubStep = snippetSubStep;
+		public BaseSnippetTransformer(final SnippetBuilder snippet) {
+			this.snippet = snippet;
 		}
 
 		@Override
@@ -348,13 +373,13 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 
 		@Override
 		public final String begin(final String line) {
-			if (CppSnippet.this.createMarkers && !this.afterStep())
-				return extractIntention(line) + createMarker(this.snippetStep, this.snippetSubStep);
+			if (CppSnippet.this.createMarkers && !this.afterStep() && !this.snippet.hasOption(Snippet.Option.NO_MARKER))
+				return extractIntention(line) + createMarker(this.snippet.step, this.snippet.subStep);
 			return null;
 		}
 
 		protected boolean afterStep() {
-			return this.snippetStep <= CppSnippet.this.step;
+			return this.snippet.step <= CppSnippet.this.step;
 		}
 
 		@Override
@@ -367,50 +392,56 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 			this.inElsePath = true;
 			return null;
 		}
+
+		protected final boolean inThen() {
+			return !this.inElsePath;
+		}
+
+		protected final String commentOrNull(final String line) {
+			return this.snippet.hasOption(Snippet.Option.USE_COMMENTS) ? ("//" + line) : null;
+		}
 	}
 
 	private class InsertSnippetTransformer extends BaseSnippetTransformer {
 
-		public InsertSnippetTransformer(final int snippetStep, final int snippetSubStep) {
-			super(snippetStep, snippetSubStep);
+		public InsertSnippetTransformer(final SnippetBuilder snippet) {
+			super(snippet);
 		}
 
 		@Override
 		public String line(final String line) {
-			if (this.inElsePath)
-				return null;
-			else
-				return this.afterStep() ? line : null;
+			if (this.inThen())
+				return this.afterStep() ? line : this.commentOrNull(line);
+			return null;
 		}
 	}
 
 	private class RemoveSnippetTransformer extends BaseSnippetTransformer {
 
-		public RemoveSnippetTransformer(final int snippetStep, final int snippetSubStep) {
-			super(snippetStep, snippetSubStep);
+		public RemoveSnippetTransformer(final SnippetBuilder snippet) {
+			super(snippet);
 		}
 
 		@Override
 		public String line(final String line) {
-			if (this.inElsePath)
-				return null;
-			else
-				return this.afterStep() ? null : line;
+			if (this.inThen())
+				return this.afterStep() ? this.commentOrNull(line) : line;
+			return null;
 		}
 	}
 
 	private class FromToSnippetTransformer extends BaseSnippetTransformer {
 
-		public FromToSnippetTransformer(final int snippetStep, final int snippetSubStep) {
-			super(snippetStep, snippetSubStep);
+		public FromToSnippetTransformer(final SnippetBuilder snippet) {
+			super(snippet);
 		}
 
 		@Override
 		public String line(final String line) {
-			if (this.inElsePath)
-				return this.afterStep() ? line : null;
+			if (this.inThen())
+				return this.afterStep() ? this.commentOrNull(line) : line;
 			else
-				return this.afterStep() ? null : line;
+				return this.afterStep() ? line : this.commentOrNull(line);
 		}
 	}
 }
