@@ -213,6 +213,10 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 				r.add(Snippet.Option.USE_COMMENTS);
 			else if ("noMarker".equalsIgnoreCase(option))
 				r.add(Snippet.Option.NO_MARKER);
+			else if ("useInsertComments".equalsIgnoreCase(option))
+				r.add(Snippet.Option.USE_INSERT_COMMENTS);
+			else if ("useRemoveComments".equalsIgnoreCase(option))
+				r.add(Snippet.Option.USE_REMOVE_COMMENTS);
 		}
 		return r;
 	}
@@ -397,8 +401,20 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 			return !this.inElsePath;
 		}
 
-		protected final String commentOrNull(final String line) {
-			return this.snippet.hasOption(Snippet.Option.USE_COMMENTS) ? ("//" + line) : null;
+		protected final String insertCommentOrNull(final String line) {
+			return this.commentOrNull(true, line);
+		}
+
+		protected final String removeCommentOrNull(final String line) {
+			return this.commentOrNull(false, line);
+		}
+
+		private String commentOrNull(final boolean insert, final String line) {
+			if (this.snippet.hasOption(Snippet.Option.USE_COMMENTS) || (insert && this.snippet.hasOption(Snippet.Option.USE_INSERT_COMMENTS))
+					|| (!insert && this.snippet.hasOption(Snippet.Option.USE_REMOVE_COMMENTS)))
+				return ("//" + line);
+			else
+				return null;
 		}
 	}
 
@@ -411,7 +427,7 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 		@Override
 		public String line(final String line) {
 			if (this.inThen())
-				return this.afterStep() ? line : this.commentOrNull(line);
+				return this.afterStep() ? line : this.insertCommentOrNull(line);
 			return null;
 		}
 	}
@@ -425,7 +441,7 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 		@Override
 		public String line(final String line) {
 			if (this.inThen())
-				return this.afterStep() ? this.commentOrNull(line) : line;
+				return this.afterStep() ? this.removeCommentOrNull(line) : line;
 			return null;
 		}
 	}
@@ -439,9 +455,9 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 		@Override
 		public String line(final String line) {
 			if (this.inThen())
-				return this.afterStep() ? this.commentOrNull(line) : line;
+				return this.afterStep() ? this.removeCommentOrNull(line) : line;
 			else
-				return this.afterStep() ? line : this.commentOrNull(line);
+				return this.afterStep() ? line : this.insertCommentOrNull(line);
 		}
 	}
 }
