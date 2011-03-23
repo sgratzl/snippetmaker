@@ -11,7 +11,7 @@ public final class Snippet implements Comparable<Snippet> {
 	}
 
 	public enum Option {
-		USE_COMMENTS, NO_MARKER, USE_INSERT_COMMENTS, USE_REMOVE_COMMENTS
+		USE_COMMENTS, NO_MARKER, USE_INSERT_COMMENTS, USE_REMOVE_COMMENTS, USE_CODE_MARKERS
 	}
 
 	private final int subStep;

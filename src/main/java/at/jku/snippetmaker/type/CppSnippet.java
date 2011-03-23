@@ -217,6 +217,8 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 				r.add(Snippet.Option.USE_INSERT_COMMENTS);
 			else if ("useRemoveComments".equalsIgnoreCase(option))
 				r.add(Snippet.Option.USE_REMOVE_COMMENTS);
+			else if ("useCodeMarkers".equalsIgnoreCase(option))
+				r.add(Snippet.Option.USE_CODE_MARKERS);
 		}
 		return r;
 	}
@@ -244,7 +246,7 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 		public void setParent(final SnippetBuilder parent) {
 			this.parent = parent;
 			if (CppSnippet.this.createMarkers && !this.hasOption(Snippet.Option.NO_MARKER))
-				parent.addCode(createMarker(this.step, this.subStep)); // create a marker for the new snippet in the old snippet
+				parent.addCode(createMarker(this)); // create a marker for the new snippet in the old snippet
 		}
 
 		public void addCode(final String line) {
@@ -313,8 +315,17 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 			throw new IllegalStateException("invalid snippet begin line: " + tline);
 	}
 
-	static String createMarker(final int step, final int substep) {
-		return String.format("/*----------%d.%d----------*/", step, substep);
+	/*----------%d.%d END----------*/
+	static String createMarker(final SnippetBuilder snippet) {
+		return String.format("/*----------%d.%d----------*/", snippet.step, snippet.subStep);
+	}
+
+	static String createBeginMarker(final SnippetBuilder snippet) {
+		return String.format("/*----------%d.%d----------*/", snippet.step, snippet.subStep);
+	}
+
+	static String createEndMarker(final SnippetBuilder snippet) {
+		return String.format("/*----------%d.%d-END------*/", snippet.step, snippet.subStep);
 	}
 
 	static String extractIntention(final String line) {
@@ -372,13 +383,17 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 
 		@Override
 		public final String end(final String line) {
+			if (this.afterStep() && this.snippet.hasOption(Snippet.Option.USE_CODE_MARKERS))
+				return extractIntention(line) + createEndMarker(this.snippet);
 			return null;
 		}
 
 		@Override
 		public final String begin(final String line) {
 			if (CppSnippet.this.createMarkers && !this.afterStep() && !this.snippet.hasOption(Snippet.Option.NO_MARKER))
-				return extractIntention(line) + createMarker(this.snippet.step, this.snippet.subStep);
+				return extractIntention(line) + createMarker(this.snippet);
+			if (this.afterStep() && this.snippet.hasOption(Snippet.Option.USE_CODE_MARKERS))
+				return extractIntention(line) + createBeginMarker(this.snippet);
 			return null;
 		}
 
