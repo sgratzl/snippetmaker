@@ -24,6 +24,9 @@
 					<rsel:or>
 						<rsel:name name="**.cpp" />
 						<rsel:name name="**.h" />
+						<rsel:name name="**.vert" />
+						<rsel:name name="**.frag" />
+						<rsel:name name="**.glsl" />
 					</rsel:or>
 				</restrict>
 				<filterchain>
@@ -47,6 +50,9 @@
 					<rsel:none>
 						<rsel:name name="**.cpp" />
 						<rsel:name name="**.h" />
+						<rsel:name name="**.vert" />
+						<rsel:name name="**.frag" />
+						<rsel:name name="**.glsl" />
 						<rsel:name name="**.xml" />
 					</rsel:none>
 				</restrict>
