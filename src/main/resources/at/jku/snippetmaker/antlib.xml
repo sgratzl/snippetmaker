@@ -26,6 +26,7 @@
 						<rsel:name name="**.h" />
 						<rsel:name name="**.vert" />
 						<rsel:name name="**.frag" />
+						<rsel:name name="**.geom" />
 						<rsel:name name="**.glsl" />
 					</rsel:or>
 				</restrict>
@@ -44,6 +45,20 @@
 					<current:stepTransformer step="@{step}" final="@{final}" type="xml" createMarker="@{createMarker}"/>
 				</filterchain>
 			</copy>
+
+			<!-- copy step marked files + strange var name to be unique -->
+			<condition property="transform.marker@{final}@{step}" value="final" else="step@{step}" >
+				<istrue value="@{final}"/>
+			</condition>
+			<copy todir="@{todir}" >
+				<restrict>
+					<data/>
+					<rsel:name name="**.${transform.marker@{final}@{step}}.*"/>
+				</restrict>
+				<regexpmapper from="^(.*)\.${transform.marker@{final}@{step}}\.(.*)$" to="\1.\2"/>
+			</copy>
+
+			<!-- copy rest -->
 			<copy todir="@{todir}" >
 				<restrict>
 					<data/>
@@ -52,8 +67,11 @@
 						<rsel:name name="**.h" />
 						<rsel:name name="**.vert" />
 						<rsel:name name="**.frag" />
+						<rsel:name name="**.geom" />
 						<rsel:name name="**.glsl" />
 						<rsel:name name="**.xml" />
+						<rsel:name name="**.final.*"/>
+						<rsel:name name="**.step*.*"/>
 					</rsel:none>
 				</restrict>
 			</copy>

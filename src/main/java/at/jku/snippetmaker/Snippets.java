@@ -5,14 +5,49 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
+
+import org.apache.tools.ant.types.Resource;
 
 import at.jku.snippetmaker.Snippets.SnippetStep;
 
 public final class Snippets implements Iterable<SnippetStep> {
-	private final SortedMap<Integer, List<Snippet>> snippets = new TreeMap<Integer, List<Snippet>>();
+	public static class SnippetStep implements Iterable<Snippet> {
+		private final int step;
+		private final List<Snippet> snippets = new ArrayList<Snippet>();
+		private final List<Resource> resources = new ArrayList<Resource>();
+
+		SnippetStep(final int step) {
+			this.step = step;
+		}
+
+		public int getStep() {
+			return this.step;
+		}
+
+		@Override
+		public Iterator<Snippet> iterator() {
+			return this.snippets.iterator();
+		}
+
+		void add(final Snippet snippet) {
+			this.snippets.add(snippet);
+			Collections.sort(this.snippets);
+		}
+
+		void add(final Resource resource) {
+			this.resources.add(resource);
+		}
+
+		void merge(final SnippetStep that) {
+			this.snippets.addAll(that.snippets);
+			this.resources.addAll(that.resources);
+			Collections.sort(this.snippets);
+		}
+	}
+
+	private final SortedMap<Integer, SnippetStep> snippets = new TreeMap<Integer, SnippetStep>();
 
 	public static final Snippets empty = new Snippets();
 
@@ -26,15 +61,17 @@ public final class Snippets implements Iterable<SnippetStep> {
 	}
 
 	public int getStepSize() {
+		if (this.snippets.isEmpty())
+			return 0;
 		return this.snippets.lastKey().intValue();
 	}
 
 	public void merge(final Snippets other) {
 		for (final SnippetStep s : other) {
 			if (!this.snippets.containsKey(s.step))
-				this.snippets.put(s.step, s.snippets);
+				this.snippets.put(s.step, s);
 			else
-				this.snippets.get(s.step).addAll(s.snippets);
+				this.snippets.get(s.step).merge(s);
 		}
 	}
 
@@ -42,50 +79,22 @@ public final class Snippets implements Iterable<SnippetStep> {
 		final Integer step = Integer.valueOf(istep);
 
 		if (!this.snippets.containsKey(step)) {
-			this.snippets.put(step, new ArrayList<Snippet>());
+			this.snippets.put(step, new SnippetStep(step));
 		}
 		this.snippets.get(step).add(snippet);
 	}
 
-	public static class SnippetStep implements Iterable<Snippet> {
-		private final int step;
-		private final List<Snippet> snippets;
+	public void add(final int istep, final Resource r) {
+		final Integer step = Integer.valueOf(istep);
 
-		SnippetStep(final int step, final List<Snippet> snippets) {
-			this.step = step;
-			this.snippets = snippets;
+		if (!this.snippets.containsKey(step)) {
+			this.snippets.put(step, new SnippetStep(step));
 		}
-
-		public int getStep() {
-			return this.step;
-		}
-
-		@Override
-		public Iterator<Snippet> iterator() {
-			return this.snippets.iterator();
-		}
+		this.snippets.get(step).add(r);
 	}
 
 	@Override
 	public Iterator<SnippetStep> iterator() {
-		final Iterator<Entry<Integer, List<Snippet>>> iterator = this.snippets.entrySet().iterator();
-		return new Iterator<Snippets.SnippetStep>() {
-			@Override
-			public boolean hasNext() {
-				return iterator.hasNext();
-			}
-
-			@Override
-			public SnippetStep next() {
-				final Entry<Integer, List<Snippet>> next = iterator.next();
-				Collections.sort(next.getValue());
-				return new SnippetStep(next.getKey().intValue(), next.getValue());
-			}
-
-			@Override
-			public void remove() {
-				throw new UnsupportedOperationException();
-			}
-		};
+		return this.snippets.values().iterator();
 	}
 }
