@@ -147,7 +147,7 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 		if (tline.matches("# *define +SNIPPET_.*")) // snippet step definition
 			return Token.SNIPPET_DEFINE;
 
-		if (tline.matches("# *if +.*")) {
+		if (tline.matches("# *if(def|ndef|) +.*")) {
 			if (tline.matches("# *if +SNIPPET_\\w+.*"))
 				return Token.SNIPPET_BEGIN;
 			return Token.IF;
