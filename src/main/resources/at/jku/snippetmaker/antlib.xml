@@ -22,12 +22,12 @@
 				<restrict>
 					<data/>
 					<rsel:or>
-						<rsel:name name="**.cpp" />
-						<rsel:name name="**.h" />
-						<rsel:name name="**.vert" />
-						<rsel:name name="**.frag" />
-						<rsel:name name="**.geom" />
-						<rsel:name name="**.glsl" />
+						<rsel:name name="**.c" /><rsel:name name="**.h" />
+						<rsel:name name="**.cpp" /><rsel:name name="**.hpp" />
+						<rsel:name name="**.cxx" /><rsel:name name="**.hxx" />
+						<rsel:name name="**.cu" /><rsel:name name="**.cuh" />
+						<rsel:name name="**.cl" />
+						<rsel:name name="**.vert" /><rsel:name name="**.frag" /><rsel:name name="**.geom" /><rsel:name name="**.glsl" />
 					</rsel:or>
 				</restrict>
 				<filterchain>
@@ -63,13 +63,15 @@
 				<restrict>
 					<data/>
 					<rsel:none>
-						<rsel:name name="**.cpp" />
-						<rsel:name name="**.h" />
-						<rsel:name name="**.vert" />
-						<rsel:name name="**.frag" />
-						<rsel:name name="**.geom" />
-						<rsel:name name="**.glsl" />
+						<rsel:name name="**.c" /><rsel:name name="**.h" />
+						<rsel:name name="**.cpp" /><rsel:name name="**.hpp" />
+						<rsel:name name="**.cxx" /><rsel:name name="**.hxx" />
+						<rsel:name name="**.cu" /><rsel:name name="**.cuh" />
+						<rsel:name name="**.cl" />
+						<rsel:name name="**.vert" /><rsel:name name="**.frag" /><rsel:name name="**.geom" /><rsel:name name="**.glsl" />
+
 						<rsel:name name="**.xml" />
+
 						<rsel:name name="**.final.*"/>
 						<rsel:name name="**.step*.*"/>
 					</rsel:none>

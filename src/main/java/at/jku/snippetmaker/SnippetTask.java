@@ -38,14 +38,17 @@ public abstract class SnippetTask extends Task {
 		return snippets;
 	}
 
+	String[] cppExtensions = { "c", "h", "cpp", "hpp", "cxx", "hxx", "vert", "frag", "geom", "glsl", "cu", "cuh", "cl" };
+
 	private Snippets parseSnippets(final Resource resource) {
 		final String ext = this.getExtension(resource.getName());
 		try {
-			if ("cpp".equalsIgnoreCase(ext) || "h".equalsIgnoreCase(ext) || "glsl".equalsIgnoreCase(ext) || "frag".equalsIgnoreCase(ext)
-					|| "vert".equalsIgnoreCase(ext) || "geom".equalsIgnoreCase(ext)) {
-				this.log("parsing resource: " + resource.getName() + " -> using cpp", Project.MSG_INFO);
-				return CppSnippet.createParser(new BufferedReader(new InputStreamReader(resource.getInputStream()))).parse();
-			} else if ("xml".equalsIgnoreCase(ext)) {
+			for (final String cppExtension : this.cppExtensions)
+				if (cppExtension.equalsIgnoreCase(ext)) {
+					this.log("parsing resource: " + resource.getName() + " -> using cpp", Project.MSG_INFO);
+					return CppSnippet.createParser(new BufferedReader(new InputStreamReader(resource.getInputStream()))).parse();
+				}
+			if ("xml".equalsIgnoreCase(ext)) {
 				this.log("parsing resource: " + resource.getName() + " -> using xml", Project.MSG_INFO);
 				return XmlSnippet.createParser(new BufferedReader(new InputStreamReader(resource.getInputStream()))).parse();
 			} else {
