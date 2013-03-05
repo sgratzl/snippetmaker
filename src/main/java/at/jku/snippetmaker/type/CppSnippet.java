@@ -142,21 +142,21 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 		final String tline = line.trim();
 		if (tline.isEmpty())
 			return Token.LINE;
-		if (tline.matches("# *include *[\"<]snippets\\.h[\">]")) // snippet include
+		if (tline.matches("#[\\s]*include *[\"<]snippets\\.h[\">]")) // snippet include
 			return Token.SNIPPET_INCLUDE;
-		if (tline.matches("# *define +SNIPPET_.*")) // snippet step definition
+		if (tline.matches("#[\\s]*define +SNIPPET_.*")) // snippet step definition
 			return Token.SNIPPET_DEFINE;
 
-		if (tline.matches("# *if(def|ndef|) +.*")) {
-			if (tline.matches("# *if +SNIPPET_\\w+.*"))
+		if (tline.matches("#[\\s]*if(def|ndef|) +.*")) {
+			if (tline.matches("#[\\s]*if +SNIPPET_\\w+.*"))
 				return Token.SNIPPET_BEGIN;
 			return Token.IF;
 		}
-		if (tline.matches("# *elif +.*"))
+		if (tline.matches("#[\\s]*elif +.*"))
 			return Token.ELIF;
-		if (tline.matches("# *else.*"))
+		if (tline.matches("#[\\s]*else.*"))
 			return Token.ELSE;
-		if (tline.matches("# *endif.*"))
+		if (tline.matches("#[\\s]*endif.*"))
 			return Token.ENDIF;
 		return Token.LINE;
 	}
@@ -280,6 +280,30 @@ public final class CppSnippet extends BaseFilterReader implements SnippetParser 
 			throw new IllegalStateException();
 		}
 
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("SnippetBuilder [action=");
+			builder.append(action);
+			builder.append(", step=");
+			builder.append(step);
+			builder.append(", subStep=");
+			builder.append(subStep);
+			builder.append(", description=");
+			builder.append(description);
+			builder.append(", options=");
+			builder.append(options);
+			builder.append(", nestedIfs=");
+			builder.append(nestedIfs);
+			builder.append(", inElsePath=");
+			builder.append(inElsePath);
+			builder.append(", codeThen=\n");
+			builder.append(codeThen);
+			builder.append(", codeElse=\n");
+			builder.append(codeElse);
+			builder.append("]");
+			return builder.toString();
+		}
 	}
 
 	private SnippetTransformer extractSnippetTransformer(final String tline) {

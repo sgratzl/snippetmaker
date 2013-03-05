@@ -33,6 +33,7 @@ public final class StepTransformer implements ChainableReader {
 			this.step = Integer.MAX_VALUE;
 	}
 
+	@Override
 	public final Reader chain(final Reader reader) {
 		switch (this.type) {
 		case cpp:

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -45,6 +46,18 @@ public final class Snippets implements Iterable<SnippetStep> {
 			this.resources.addAll(that.resources);
 			Collections.sort(this.snippets);
 		}
+
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("SnippetStep [step=");
+			builder.append(step);
+			builder.append(", snippets=");
+			builder.append(snippets);
+			builder.append("]");
+			return builder.toString();
+		}
+
 	}
 
 	private final SortedMap<Integer, SnippetStep> snippets = new TreeMap<Integer, SnippetStep>();
@@ -57,7 +70,13 @@ public final class Snippets implements Iterable<SnippetStep> {
 
 	@Override
 	public String toString() {
-		return this.snippets.toString();
+		StringBuilder b = new StringBuilder();
+		for (Map.Entry<Integer, SnippetStep> s : snippets.entrySet()) {
+			b.append(s.getKey()).append(":\n");
+			b.append(s.getValue());
+			b.append("\n");
+		}
+		return b.toString();
 	}
 
 	public int getStepSize() {
