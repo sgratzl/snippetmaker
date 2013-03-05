@@ -33,7 +33,6 @@ public abstract class SnippetTask extends Task {
 				snippets.merge(this.parseSnippets(((Resource) res)));
 			}
 		}
-		System.out.println(snippets);
 		this.log("dump\n" + snippets, Project.MSG_DEBUG);
 
 		return snippets;

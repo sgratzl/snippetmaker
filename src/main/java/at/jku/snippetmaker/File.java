@@ -91,7 +91,6 @@ public final class File extends SnippetTask {
 					writer.close();
 			}
 		} catch (final Throwable e) {
-			e.printStackTrace();
 			this.log("error: " + e.getMessage(), e, Project.MSG_ERR);
 		}
 	}
