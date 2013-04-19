@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<antlib xmlns:current="ant:current" xmlns:rsel="antlib:org.apache.tools.ant.types.resources.selectors">
+
+	<taskdef name="file" classname="at.jku.snippetmaker.File" />
+	<taskdef name="stepSize" classname="at.jku.snippetmaker.StepSize" />
+	<typedef name="stepTransformer" classname="at.jku.snippetmaker.StepTransformer" />
+	<typedef name="forEachStep" classname="at.jku.snippetmaker.ForEachStep" />
+
+	<typedef name="stepFilter" classname="at.jku.snippetmaker.StepFilter" />
+
+	<!-- = = = = = = = = = = = = = = = = =
+		macrodef: transform
+		= = = = = = = = = = = = = = = = = -->
+	<macrodef name="transform">
+		<attribute name="todir" />
+		<attribute name="step" default="0"/>
+		<attribute name="final" default="false"/>
+		<attribute name="createMarker" default="true"/>
+		<element name="data" implicit="true"/>
+		<sequential>
+			<copy todir="@{todir}" >
+				<restrict>
+					<data/>
+					<rsel:or>
+						<rsel:name name="**.c" /><rsel:name name="**.h" />
+						<rsel:name name="**.cpp" /><rsel:name name="**.hpp" />
+						<rsel:name name="**.cxx" /><rsel:name name="**.hxx" />
+						<rsel:name name="**.cu" /><rsel:name name="**.cuh" />
+						<rsel:name name="**.cl" />
+						<rsel:name name="**.vert" /><rsel:name name="**.frag" /><rsel:name name="**.geom" /><rsel:name name="**.glsl" />
+					</rsel:or>
+				</restrict>
+				<filterchain>
+					<current:stepTransformer step="@{step}" final="@{final}" type="cpp" createMarker="@{createMarker}"/>
+				</filterchain>
+			</copy>
+			<copy todir="@{todir}" >
+				<restrict>
+					<data/>
+					<rsel:or>
+						<rsel:name name="**.xml" />
+					</rsel:or>
+				</restrict>
+				<filterchain>
+					<current:stepTransformer step="@{step}" final="@{final}" type="xml" createMarker="@{createMarker}"/>
+				</filterchain>
+			</copy>
+
+			<!-- copy step marked files + strange var name to be unique -->
+			<condition property="transform.marker@{final}@{step}" value="final" else="step@{step}" >
+				<istrue value="@{final}"/>
+			</condition>
+			<copy todir="@{todir}" >
+				<restrict>
+					<data/>
+					<rsel:name name="**.${transform.marker@{final}@{step}}.*"/>
+				</restrict>
+				<regexpmapper from="^(.*)\.${transform.marker@{final}@{step}}\.(.*)$" to="\1.\2"/>
+			</copy>
+
+			<!-- copy rest -->
+			<copy todir="@{todir}" >
+				<restrict>
+					<data/>
+					<rsel:none>
+						<rsel:name name="**.c" /><rsel:name name="**.h" />
+						<rsel:name name="**.cpp" /><rsel:name name="**.hpp" />
+						<rsel:name name="**.cxx" /><rsel:name name="**.hxx" />
+						<rsel:name name="**.cu" /><rsel:name name="**.cuh" />
+						<rsel:name name="**.cl" />
+						<rsel:name name="**.vert" /><rsel:name name="**.frag" /><rsel:name name="**.geom" /><rsel:name name="**.glsl" />
+
+						<rsel:name name="**.xml" />
+
+						<rsel:name name="**.final.*"/>
+						<rsel:name name="**.step*.*"/>
+					</rsel:none>
+				</restrict>
+			</copy>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="transformAll">
+		<attribute name="todir" />
+		<attribute name="createMarker" default="true"/>
+		<element name="data" implicit="true"/>
+		<sequential>
+			<current:forEachStep>
+				<data/>
+				<sequential>
+					<current:transform todir="@{todir}@{step}" step="@{step}" createMarker="@{createMarker}" >
+						<data/>
+					</current:transform>
+				</sequential>
+			</current:forEachStep>
+			<current:transform todir="@{todir}Final" final="true" createMarker="@{createMarker}">
+				<data/>
+			</current:transform>
+		</sequential>
+	</macrodef>
+
+</antlib>
