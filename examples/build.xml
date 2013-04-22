@@ -4,12 +4,12 @@
 
 	<taskdef resource="at/jku/snippetmaker/antlib.xml" uri="antlib:at.jku.snippetmaker" >
 		<classpath>
-			<fileset dir="${basedir}" includes="snippetmaker*.jar" />
+			<fileset dir="${basedir}" includes="../target/snippetmaker*.jar" />
 		</classpath>
 	</taskdef>
 
 	<target name="transform" description="transforms the input">
-		<mkdir dir="${tmp.dir}" />
+		<mkdir dir="../${tmp.dir}" />
 		
 		<snippet:file type="html" file="${tmp.dir}/snippets.html" >
 			<fileset dir="${basedir}" />

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns:snippet="https://raw.github.com/sgratzl/snippetmaker" snippet:schemaLocation="https://raw.github.com/sgratzl/snippetmaker/master/src/main/resources/at/jku/snippetmaker/snippets.xsd" >
+	<test a="asdf">
+		<snippet:insert step="1" subStep="1" description="test" >
+			<test test="true" />
+		</snippet:insert>
+	</test>
+
+	<snippet:remove step="1" subStep="2" description="test" >
+		<test test="remove" />
+	</snippet:remove>
+
+	<snippet:fromto step="2" subStep="2" description="test" >
+		<snippet:from>
+			<test test="from" />
+		</snippet:from>
+		<snippet:to>
+			<test test="to" />
+		</snippet:to>
+	</snippet:fromto>
+</root>
