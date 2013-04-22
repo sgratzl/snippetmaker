@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://cg.jku.at/snippets" xmlns:tns="http://cg.jku.at/snippets" elementFormDefault="qualified">
+
+	<attribute name="step" type="int"></attribute>
+	<attribute name="subStep" type="int"></attribute>
+	<attribute name="description" type="string"></attribute>
+
+	<complexType name="insertType">
+		<sequence>
+			<any></any>
+		</sequence>
+		<attribute ref="tns:step"></attribute>
+		<attribute ref="tns:subStep"></attribute>
+		<attribute ref="tns:description"></attribute>
+	</complexType>
+
+	<complexType name="removeType">
+		<sequence>
+			<any></any>
+		</sequence>
+		<attribute ref="tns:step"></attribute>
+		<attribute ref="tns:subStep"></attribute>
+		<attribute ref="tns:description"></attribute>
+	</complexType>
+
+	<complexType name="fromtoType">
+		<sequence>
+			<element ref="tns:from"></element>
+			<element ref="tns:to"></element>
+		</sequence>
+		<attribute ref="tns:step"></attribute>
+		<attribute ref="tns:subStep"></attribute>
+		<attribute ref="tns:description"></attribute>
+	</complexType>
+
+	<complexType name="fromType">
+		<sequence>
+			<any></any>
+		</sequence>
+	</complexType>
+
+	<complexType name="toType">
+		<sequence>
+			<any></any>
+		</sequence>
+		</complexType>
+
+	<element name="insert" type="tns:insertType"></element>
+	<element name="remove" type="tns:removeType"></element>
+	<element name="fromto" type="tns:fromtoType"></element>
+	<element name="from" type="tns:fromType"></element>
+	<element name="to" type="tns:toType"></element>
+</schema>

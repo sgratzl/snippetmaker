@@ -1,0 +1,39 @@
+<project name="Snippetmaker" default="transform" xmlns:snippet="antlib:at.jku.snippetmaker">
+	<tempfile property="tmp.dir" />
+	 
+
+	<taskdef resource="at/jku/snippetmaker/antlib.xml" uri="antlib:at.jku.snippetmaker" >
+		<classpath>
+			<fileset dir="${basedir}" includes="snippetmaker*.jar" />
+		</classpath>
+	</taskdef>
+
+	<target name="transform" description="transforms the input">
+		<mkdir dir="${tmp.dir}" />
+		
+		<snippet:file type="html" file="${tmp.dir}/snippets.html" >
+			<fileset dir="${basedir}" />
+			<!--<snippet:stepFilter excludes="-4" />-->
+		</snippet:file>
+		<snippet:file type="latex" file="${tmp.dir}/snippets.tex" >
+			<fileset dir="${basedir}" />
+		</snippet:file>
+		<snippet:file type="txt" file="${tmp.dir}/snippets.txt" >
+			<fileset dir="${basedir}" />
+		</snippet:file>
+
+		<!--copy the a project in the 0 step-->
+		<snippet:transform todir="${tmp.dir}/step0" step="0">
+			<fileset dir="${basedir}"/>
+		</snippet:transform>
+		<!--copy the a project in the final step-->
+		<snippet:transform todir="${tmp.dir}/stepFinal" final="true">
+			<fileset dir="${basedir}"/>
+		</snippet:transform>
+		
+		<!--copy the project in all steps-->
+		<snippet:transformAll todir="${tmp.dir}/steps">
+			<fileset dir="${basedir}"/>
+		</snippet:transformAll>
+	</target>
+</project>
